@@ -34,6 +34,21 @@ class ProjectUpdate(BaseModel):
 
 # ============ 响应 Schema ============
 
+class ProjectRecordResponse(BaseModel):
+    """项目关联记录响应"""
+    id: int
+    type: str
+    category_id: int
+    category_item_id: int
+    amount: Decimal
+    date: datetime
+    remark: Optional[str]
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
 class ProjectResponse(BaseModel):
     """项目响应"""
     id: int
@@ -60,22 +75,7 @@ class ProjectDetailResponse(ProjectResponse):
     expense_rate: float = 0.0  # 消费率
     
     # 关联记录
-    records: List['ProjectRecordResponse'] = []
-
-
-class ProjectRecordResponse(BaseModel):
-    """项目关联记录响应"""
-    id: int
-    type: str
-    category_id: int
-    category_item_id: int
-    amount: Decimal
-    date: datetime
-    remark: Optional[str]
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
+    records: List[ProjectRecordResponse] = []
 
 
 class ProjectListResponse(BaseModel):
