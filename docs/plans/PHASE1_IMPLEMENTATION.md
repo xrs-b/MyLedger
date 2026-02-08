@@ -207,13 +207,13 @@ html, body {
 ```bash
 # 启动后端
 cd backend
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 888
 
 # 测试
-curl http://localhost:8000/health
+curl http://localhost:888/health
 # 预期: {"status":"ok","message":"MyLedger API is running"}
 
-curl http://localhost:8000/
+curl http://localhost:888/
 # 预期: {"name":"MyLedger","version":"1.0.0"}
 ```
 
@@ -224,7 +224,7 @@ cd frontend
 npm install
 npm run dev
 
-# 访问 http://localhost:3000
+# 访问 http://localhost:666
 # 预期: 看到首页
 ```
 
