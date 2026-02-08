@@ -7,13 +7,15 @@ import axios from 'axios'
 
 const API_URL = '/api/v1/auth'
 
+// 获取 token 的辅助函数
+const getAuthHeader = () => {
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 const authApi = {
   /**
    * 用户注册
-   * @param {Object} data - 注册数据
-   * @param {string} data.username - 账号名
-   * @param {string} data.password - 密码
-   * @param {string} data.invite_code - 邀请码
    */
   async register(data) {
     const formData = new URLSearchParams()
@@ -30,9 +32,6 @@ const authApi = {
 
   /**
    * 用户登录
-   * @param {Object} data - 登录数据
-   * @param {string} data.username - 账号名
-   * @param {string} data.password - 密码
    */
   async login(data) {
     const formData = new URLSearchParams()
@@ -50,21 +49,27 @@ const authApi = {
    * 获取当前用户信息
    */
   async me() {
-    return axios.get(`${API_URL}/me`)
+    return axios.get(`${API_URL}/me`, {
+      headers: getAuthHeader()
+    })
   },
 
   /**
    * 退出登录
    */
   async logout() {
-    return axios.post(`${API_URL}/logout`)
+    return axios.post(`${API_URL}/logout`, {}, {
+      headers: getAuthHeader()
+    })
   },
 
   /**
    * 刷新 Token
    */
   async refresh() {
-    return axios.post(`${API_URL}/refresh`)
+    return axios.post(`${API_URL}/refresh`, {}, {
+      headers: getAuthHeader()
+    })
   }
 }
 

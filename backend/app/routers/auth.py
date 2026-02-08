@@ -5,7 +5,6 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status, Form
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -27,9 +26,6 @@ INVITE_CODE = "vip1123"
 
 # 密码加密
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# OAuth2 密码流
-oauth2_scheme = OAuth2PasswordRequestForm()
 
 # 路由
 router = APIRouter(prefix="/api/v1/auth", tags=["认证"])
@@ -66,7 +62,7 @@ def decode_token(token: str) -> dict:
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    token: str,
     db: Session = Depends(get_db)
 ) -> User:
     """获取当前登录用户"""
@@ -110,7 +106,7 @@ async def get_current_admin(current_user: User = Depends(get_current_user)) -> U
 async def register(
     username: str = Form(..., min_length=3, max_length=50, description="账号名"),
     password: str = Form(..., min_length=6, max_length=50, description="密码"),
-    invite_code: str = Form(..., min_length=1, max_length=20, description="邀请码"),
+    invite_code: str = Form(..., description="邀请码"),
     db: Session = Depends(get_db)
 ):
     """
@@ -162,11 +158,12 @@ async def register(
 
 @router.post("/login", response_model=LoginResponse, summary="用户登录")
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    username: str = Form(..., description="账号名"),
+    password: str = Form(..., description="密码"),
     db: Session = Depends(get_db)
 ):
     """
-    用户登录 (OAuth2 密码流)
+    用户登录
     
     - username: 账号名
     - password: 密码
@@ -174,10 +171,10 @@ async def login(
     返回 JWT Token
     """
     # 查找用户
-    user = db.query(User).filter(User.username == form_data.username).first()
+    user = db.query(User).filter(User.username == username).first()
     
     # 验证密码
-    if not user or not pwd_context.verify(form_data.password, user.password_hash):
+    if not user or not pwd_context.verify(password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="用户名或密码错误",
@@ -206,9 +203,19 @@ async def login(
 
 
 @router.get("/me", response_model=UserResponse, summary="获取当前用户")
-async def get_me(current_user: User = Depends(get_current_user)):
+async def get_me(authorization: str = None, db: Session = Depends(get_db)):
     """获取当前登录用户信息"""
-    return UserResponse.model_validate(current_user)
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="未提供认证信息"
+        )
+    
+    # 提取 token
+    token = authorization.replace("Bearer ", "")
+    
+    user = await get_current_user(token, db)
+    return UserResponse.model_validate(user)
 
 
 @router.post("/logout", response_model=MessageResponse, summary="退出登录")
@@ -222,15 +229,22 @@ async def logout():
 
 
 @router.post("/refresh", response_model=Token, summary="刷新 Token")
-async def refresh_token(current_user: User = Depends(get_current_user)):
+async def refresh_token(authorization: str = None, db: Session = Depends(get_db)):
     """
     刷新 Token
-    
-    使用当前用户信息生成新的 Token
     """
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="未提供认证信息"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    user = await get_current_user(token, db)
+    
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": current_user.username, "user_id": current_user.id},
+        data={"sub": user.username, "user_id": user.id},
         expires_delta=access_token_expires
     )
     
