@@ -74,9 +74,13 @@ async def get_records(
     # 构建响应
     record_responses = []
     for record in records:
-        # 获取关联信息
-        category = record.category_id  # 这里可以通过关联获取
-        payment_method = record.payment_method_id
+        # 获取关联的项目标题
+        project_title = None
+        if record.project_id:
+            from ..models import Project
+            project = db.query(Project.title).filter(Project.id == record.project_id).first()
+            if project:
+                project_title = project[0]
         
         record_responses.append(RecordDetailResponse(
             **{
@@ -90,6 +94,7 @@ async def get_records(
                 'remark': record.remark,
                 'payment_method_id': record.payment_method_id,
                 'project_id': record.project_id,
+                'project_title': project_title,
                 'created_at': record.created_at,
                 'updated_at': record.updated_at,
             }

@@ -32,6 +32,10 @@
           <div class="record-date">
             {{ formatDate(record.date) }}
           </div>
+          <div class="record-project" v-if="record.project_title">
+            <van-icon name="cluster-o" size="12" />
+            {{ record.project_title }}
+          </div>
           <div class="record-remark" v-if="record.remark">
             {{ record.remark }}
           </div>
@@ -170,6 +174,15 @@ onMounted(async () => {
 .record-date {
   font-size: 12px;
   color: #969799;
+}
+
+.record-project {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #1989fa;
+  margin-top: 4px;
 }
 
 .record-remark {
