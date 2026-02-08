@@ -1,23 +1,128 @@
 <template>
   <div class="page-container">
     <h1 class="page-title">注册</h1>
-    <div class="card">
-      <p>注册页面</p>
+    
+    <van-form @submit="onSubmit">
+      <van-field
+        v-model="form.username"
+        name="username"
+        label="账号名"
+        placeholder="请输入账号名 (3-50字符)"
+        :rules="[
+          { required: true, message: '请输入账号名' },
+          { min: 3, max: 50, message: '账号名需要3-50字符' }
+        ]"
+      />
+      <van-field
+        v-model="form.password"
+        type="password"
+        name="password"
+        label="密码"
+        placeholder="请输入密码 (6-50字符)"
+        :rules="[
+          { required: true, message: '请输入密码' },
+          { min: 6, max: 50, message: '密码需要6-50字符' }
+        ]"
+      />
+      <van-field
+        v-model="form.inviteCode"
+        name="inviteCode"
+        label="邀请码"
+        placeholder="请输入邀请码"
+        :rules="[{ required: true, message: '请输入邀请码' }]"
+      />
+      <van-button 
+        type="primary" 
+        native-type="submit" 
+        block 
+        :loading="loading"
+        class="submit-btn"
+      >
+        注册
+      </van-button>
+    </van-form>
+    
+    <div class="tips">
+      <p>邀请码: <strong>vip1123</strong></p>
     </div>
-    <router-link to="/" class="back-link">返回首页</router-link>
+    
+    <router-link to="/login" class="link">
+      已有账号？去登录
+    </router-link>
   </div>
 </template>
 
 <script setup>
-/**
- * 注册页
- */
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { Toast } from 'vant'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+const form = reactive({
+  username: '',
+  password: '',
+  inviteCode: ''
+})
+
+const loading = ref(false)
+
+const onSubmit = async () => {
+  loading.value = true
+  
+  try {
+    const result = await authStore.register(
+      form.username,
+      form.password,
+      form.inviteCode
+    )
+    
+    if (result.success) {
+      Toast.success({
+        message: '注册成功！',
+        duration: 1500
+      })
+      
+      // 2秒后跳转登录页
+      setTimeout(() => {
+        router.push('/login')
+      }, 2000)
+    } else {
+      Toast.fail(result.message)
+    }
+  } catch (error) {
+    Toast.fail('注册失败，请重试')
+    console.error('注册错误:', error)
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <style scoped>
-.back-link {
-  display: inline-block;
+.submit-btn {
+  margin-top: 24px;
+}
+
+.tips {
   margin-top: 16px;
-  color: var(--primary-color);
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  text-align: center;
+  color: #666;
+}
+
+.tips strong {
+  color: #1989fa;
+}
+
+.link {
+  display: block;
+  margin-top: 24px;
+  text-align: center;
+  color: #1989fa;
 }
 </style>
