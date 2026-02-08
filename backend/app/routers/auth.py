@@ -6,7 +6,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Form
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -23,17 +23,6 @@ SECRET_KEY = os.getenv("SECRET_KEY", "myleger-secret-key-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 10080  # 7天
 INVITE_CODE = "vip1123"
-
-# 密码加密 (禁用 bcrypt wrap bug 检测)
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto",
-    bcrypt__default_rounds=12,
-    bcrypt__ident="2b"
-)
-# 禁用 bcrypt bug 检测
-import passlib.handlers.bcrypt
-passlib.handlers.bcrypt._detect_bug_wrap = lambda *args, **kwargs: False
 
 # 路由
 router = APIRouter(prefix="/api/v1/auth", tags=["认证"])
@@ -145,8 +134,10 @@ async def register(
     user_count = db.query(User).count()
     is_first_user = user_count == 0
     
-    # 创建用户
-    hashed_password = pwd_context.hash(password)
+    # 创建用户 - 使用 bcrypt 直接加密
+    salt = bcrypt.gensalt(rounds=12)
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+    
     new_user = User(
         username=username,
         password_hash=hashed_password,
@@ -182,7 +173,7 @@ async def login(
     user = db.query(User).filter(User.username == username).first()
     
     # 验证密码
-    if not user or not pwd_context.verify(password, user.password_hash):
+    if not user or not bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="用户名或密码错误",
