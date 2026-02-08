@@ -44,6 +44,12 @@ const routes = [
     meta: { title: '项目' }
   },
   {
+    path: '/projects/add',
+    name: 'AddProject',
+    component: () => import('../views/AddProject.vue'),
+    meta: { title: '新建项目' }
+  },
+  {
     path: '/projects/:id',
     name: 'ProjectDetail',
     component: () => import('../views/ProjectDetail.vue'),
