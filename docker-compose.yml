@@ -1,4 +1,3 @@
-
 services:
   backend:
     build:
@@ -33,7 +32,3 @@ services:
     restart: unless-stopped
     volumes:
       - ./frontend/dist:/usr/share/nginx/html:ro
-
-networks:
-  default:
-    name: mobile-ledger-network
