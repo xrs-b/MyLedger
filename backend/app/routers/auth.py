@@ -29,7 +29,7 @@ INVITE_CODE = "vip1123"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2 密码流
-oauth2_scheme = OAuth2PasswordRequestForm(tokenUrl="/api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordRequestForm()
 
 # 路由
 router = APIRouter(prefix="/api/v1/auth", tags=["认证"])
