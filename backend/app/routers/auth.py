@@ -24,8 +24,16 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 10080  # 7天
 INVITE_CODE = "vip1123"
 
-# 密码加密
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# 密码加密 (禁用 bcrypt wrap bug 检测)
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__default_rounds=12,
+    bcrypt__ident="2b"
+)
+# 禁用 bcrypt bug 检测
+import passlib.handlers.bcrypt
+passlib.handlers.bcrypt._detect_bug_wrap = lambda *args, **kwargs: False
 
 # 路由
 router = APIRouter(prefix="/api/v1/auth", tags=["认证"])
