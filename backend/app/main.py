@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # 导入路由
-from .routers import auth, categories
+from .routers import auth, categories, records
 
 app = FastAPI(
     title="MyLedger API",
@@ -27,6 +27,7 @@ app.add_middleware(
 # 注册路由
 app.include_router(auth.router)
 app.include_router(categories.router)
+app.include_router(records.router)
 
 
 @app.get("/health")
