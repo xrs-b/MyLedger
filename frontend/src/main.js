@@ -5,8 +5,9 @@
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import Vant from 'vant'
+import Vant, { Toast } from 'vant'
 import 'vant/lib/index.css'
+import 'vant/toast/style'
 import App from './App.vue'
 import router from './router'
 import './style.css'
@@ -19,7 +20,10 @@ app.use(createPinia())  // 状态管理
 app.use(router)          // 路由
 app.use(Vant)            // Vant UI 组件库
 
+// 将 Toast 设置为全局方法
+app.config.globalProperties.$toast = Toast
+
 // 挂载应用
-app.mount('#app')
+app.mount('#app')}
 
 console.log('MyLedger Frontend Started')
