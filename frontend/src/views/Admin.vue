@@ -13,12 +13,12 @@
         <div class="stat-label">记录</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">{{ stats.project_count }}</div>
-        <div class="stat-label">项目</div>
-      </div>
-      <div class="stat-card">
         <div class="stat-value">{{ stats.category_count }}</div>
         <div class="stat-label">分类</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.project_count }}</div>
+        <div class="stat-label">项目</div>
       </div>
     </div>
     
@@ -128,7 +128,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import adminApi from '@/api/admin'
-import { Toast, Dialog } from 'vant'
+import { Toast, MessageBox } from 'vant'
 
 const authStore = useAuthStore()
 
@@ -173,10 +173,7 @@ const loadData = async () => {
 
 const deleteUser = async (id) => {
   try {
-    await Dialog.confirm({
-      title: '确认删除',
-      message: '确定要删除这个用户吗？',
-    })
+    await MessageBox.confirm('确定要删除这个用户吗？', '确认删除')
     
     await adminApi.deleteUser(id)
     Toast.success('删除成功')
@@ -191,10 +188,7 @@ const deleteUser = async (id) => {
 
 const deleteRecord = async (id) => {
   try {
-    await Dialog.confirm({
-      title: '确认删除',
-      message: '确定要删除这条记录吗？',
-    })
+    await MessageBox.confirm('确定要删除这条记录吗？', '确认删除')
     
     await adminApi.deleteRecord(id)
     Toast.success('删除成功')
@@ -209,10 +203,7 @@ const deleteRecord = async (id) => {
 
 const deleteCategory = async (id) => {
   try {
-    await Dialog.confirm({
-      title: '确认删除',
-      message: '确定要删除这个分类吗？二级分类也会被删除。',
-    })
+    await MessageBox.confirm('确定要删除这个分类吗？二级分类也会被删除。', '确认删除')
     
     await adminApi.deleteCategory(id)
     Toast.success('删除成功')
@@ -227,10 +218,7 @@ const deleteCategory = async (id) => {
 
 const deleteProject = async (id) => {
   try {
-    await Dialog.confirm({
-      title: '确认删除',
-      message: '确定要删除这个项目吗？关联的记录也会被删除。',
-    })
+    await MessageBox.confirm('确定要删除这个项目吗？关联的记录也会被删除。', '确认删除')
     
     await adminApi.deleteProject(id)
     Toast.success('删除成功')
