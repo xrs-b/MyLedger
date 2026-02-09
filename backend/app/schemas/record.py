@@ -17,7 +17,7 @@ class RecordCreate(BaseModel):
     category_id: int = Field(..., description="一级分类ID")
     category_item_id: int = Field(..., description="二级分类ID")
     amount: Decimal = Field(..., gt=0, description="金额")
-    date: datetime = Field(default_factory=datetime.utcnow, description="日期时间")
+    date: str = Field(..., description="日期 (YYYY-MM-DD)")
     remark: Optional[str] = Field(None, max_length=500, description="备注")
     payment_method_id: Optional[int] = Field(None, description="支付方式ID")
     project_id: Optional[int] = Field(None, description="关联项目ID")

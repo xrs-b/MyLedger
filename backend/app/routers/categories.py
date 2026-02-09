@@ -21,18 +21,50 @@ router = APIRouter(prefix="/api/v1/categories", tags=["分类"])
 
 # ============ 一级分类 API ============
 
+# ============ 特殊路由（必须在参数路由之前）============
+
+
+
+
+@router.get("/items", response_model=List[CategoryItemResponse], summary="获取所有二级分类")
+async def get_all_items(
+    category_id: int = Query(None, description="一级分类ID"),
+    db: Session = Depends(get_db)
+):
+    """
+    获取二级分类列表
+    - category_id: 筛选一级分类
+    """
+    query = db.query(CategoryItem)
+    if category_id:
+        query = query.filter(CategoryItem.category_id == category_id)
+    return query.order_by(CategoryItem.sort_order).all()
+
+
+@router.get("/list", response_model=List[CategoryResponse], summary="获取分类列表")
+async def get_category_list(
+    type: str = Query(None, description="筛选类型 (expense/income)"),
+    db: Session = Depends(get_db)
+):
+    """获取分类列表"""
+    query = db.query(Category)
+    if type:
+        query = query.filter(Category.type == type)
+    return query.order_by(Category.sort_order).all()
+
+
+# ============ 主路由 ============
+
 @router.get("", response_model=CategoriesListResponse, summary="获取所有分类")
 async def get_categories(db: Session = Depends(get_db)):
     """
     获取所有分类（支出+收入）
     包含二级分类
     """
-    # 获取支出分类
     expense_categories = db.query(Category).filter(
         Category.type == 'expense'
     ).order_by(Category.sort_order).all()
     
-    # 获取收入分类
     income_categories = db.query(Category).filter(
         Category.type == 'income'
     ).order_by(Category.sort_order).all()
@@ -43,19 +75,7 @@ async def get_categories(db: Session = Depends(get_db)):
     }
 
 
-@router.get("/list", response_model=List[CategoryResponse], summary="获取分类列表")
-async def get_category_list(
-    type: str = None,
-    db: Session = Depends(get_db)
-):
-    """
-    获取分类列表
-    - type: 筛选类型 (expense/income)
-    """
-    query = db.query(Category)
-    if type:
-        query = query.filter(Category.type == type)
-    return query.order_by(Category.sort_order).all()
+
 
 
 @router.get("/{category_id}", response_model=CategoryWithItemsResponse, summary="获取分类详情")
@@ -143,19 +163,7 @@ async def delete_category(category_id: int, db: Session = Depends(get_db)):
 
 # ============ 二级分类 API ============
 
-@router.get("/items", response_model=List[CategoryItemResponse], summary="获取所有二级分类")
-async def get_all_items(
-    category_id: int = None,
-    db: Session = Depends(get_db)
-):
-    """
-    获取二级分类列表
-    - category_id: 筛选一级分类
-    """
-    query = db.query(CategoryItem)
-    if category_id:
-        query = query.filter(CategoryItem.category_id == category_id)
-    return query.order_by(CategoryItem.sort_order).all()
+
 
 
 @router.get("/items/{item_id}", response_model=CategoryItemResponse, summary="获取二级分类详情")
@@ -239,10 +247,7 @@ async def delete_item(item_id: int, db: Session = Depends(get_db)):
 
 # ============ 支付方式 API ============
 
-@router.get("/payment-methods", response_model=List[PaymentMethodResponse], summary="获取支付方式")
-async def get_payment_methods(db: Session = Depends(get_db)):
-    """获取所有支付方式"""
-    return db.query(PaymentMethod).order_by(PaymentMethod.sort_order).all()
+
 
 
 @router.post("/payment-methods", response_model=PaymentMethodResponse, summary="创建支付方式")

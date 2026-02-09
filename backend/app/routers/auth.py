@@ -3,7 +3,7 @@
 用户注册、登录、JWT Token 管理
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Form, Header
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 import bcrypt
@@ -59,10 +59,24 @@ def decode_token(token: str) -> dict:
 
 
 async def get_current_user(
-    token: str,
+    authorization: str = Header(None, description="Bearer token"),
     db: Session = Depends(get_db)
 ) -> User:
     """获取当前登录用户"""
+    # 从 Authorization header 提取 token
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="未提供认证信息",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # 提取 Bearer token
+    if authorization.startswith('Bearer '):
+        token = authorization[7:]
+    else:
+        token = authorization
+    
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="无法验证用户身份",

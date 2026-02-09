@@ -187,14 +187,20 @@ async def create_record(
                 detail="项目不存在"
             )
     
-    # 创建记录
+    # 创建记录 - 解析日期字符串
+    # 解析日期字符串为 datetime
+    try:
+        record_date = datetime.strptime(record.date, '%Y-%m-%d')
+    except:
+        record_date = datetime.utcnow()
+    
     db_record = Record(
         user_id=current_user.id,
         type=record.type,
         category_id=record.category_id,
         category_item_id=record.category_item_id,
         amount=record.amount,
-        date=record.date,
+        date=record_date,
         remark=record.remark,
         payment_method_id=record.payment_method_id,
         project_id=record.project_id
