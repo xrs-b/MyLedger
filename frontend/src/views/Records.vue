@@ -125,21 +125,16 @@ onMounted(loadData)
 
 .record-left { margin-right: 12px; }
 .type-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 32px;
   font-weight: bold;
 }
 .type-icon.income {
-  background: rgba(7, 193, 96, 0.15);
   color: #07c160;
 }
 .type-icon.expense {
-  background: rgba(238, 10, 36, 0.15);
   color: #ee0a24;
 }
 .record-center { flex: 1; }
