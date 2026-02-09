@@ -52,33 +52,32 @@ const form = reactive({
 const loading = ref(false)
 
 const onSubmit = async () => {
+  if (loading.value) return
+  
   loading.value = true
+  Toast.loading('登录中...')
   
   try {
-    await authStore.login(form.username, form.password)
+    const result = await authStore.login(form.username, form.password)
+    Toast.clear()
     
-    Toast.success('登录成功！')
-    
-    setTimeout(() => {
+    if (result?.success) {
+      Toast.success('登录成功！')
       router.push('/')
-    }, 1000)
+    } else {
+      Toast.fail(result?.message || '登录失败')
+    }
   } catch (error) {
-    // 解析错误信息
-    let errorMsg = '登录失败，请重试'
+    Toast.clear()
     
+    let errorMsg = '登录失败，请重试'
     if (error?.data?.detail) {
       const detail = error.data.detail
       if (Array.isArray(detail) && detail.length > 0) {
         errorMsg = detail[0]?.msg || detail[0]?.type || JSON.stringify(detail[0])
       } else if (typeof detail === 'string') {
         errorMsg = detail
-      } else {
-        errorMsg = JSON.stringify(detail)
       }
-    } else if (error?.data?.message) {
-      errorMsg = error.data.message
-    } else if (error?.message) {
-      errorMsg = error.message
     }
     
     Toast.fail(errorMsg)
