@@ -125,29 +125,50 @@ const formatAmount = (amount) => {
 const setDateRange = (value) => {
   dateRange.value = value
   const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth()
+  const day = now.getDate()
+  const weekDay = now.getDay() || 7 // 星期几，周日=7
+  
   let start = new Date()
+  let end = new Date()
   
   switch (value) {
     case 'week':
-      start.setDate(now.getDate() - 7)
+      // 本周：本周一到今天
+      start.setDate(day - weekDay + 1) // 周一
+      start.setHours(0, 0, 0, 0)
+      end = new Date()
       break
     case 'month':
-      start.setMonth(now.getMonth() - 1)
+      // 本月：本月1号到本月最后一天
+      start = new Date(year, month, 1)
+      end = new Date(year, month + 1, 0) // 本月最后一天
       break
     case 'quarter':
-      start.setMonth(now.getMonth() - 3)
+      // 本季度：本季度第一天到本季度最后一天
+      const quarterMonth = Math.floor(month / 3) * 3
+      start = new Date(year, quarterMonth, 1)
+      end = new Date(year, quarterMonth + 3, 0) // 本季度最后一天
       break
     case 'year':
-      start.setFullYear(now.getFullYear() - 1)
+      // 全年：本年1月1号到本年12月31号
+      start = new Date(year, 0, 1)
+      end = new Date(year, 11, 31)
       break
   }
   
   statisticsStore.setFilters({
-    start_date: start.toISOString().split('T')[0],
-    end_date: now.toISOString().split('T')[0]
+    start_date: formatDate(start),
+    end_date: formatDate(end)
   })
   
   loadData()
+}
+
+// 格式化日期为 YYYY-MM-DD
+const formatDate = (date) => {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 // 自定义日期确认
@@ -159,8 +180,8 @@ const onCustomDateConfirm = (values) => {
   const endDate = new Date(endYear, endMonth - 1, endDay)
   
   statisticsStore.setFilters({
-    start_date: startDate.toISOString().split('T')[0],
-    end_date: endDate.toISOString().split('T')[0]
+    start_date: formatDate(startDate),
+    end_date: formatDate(endDate)
   })
   
   showCustomDate.value = false
