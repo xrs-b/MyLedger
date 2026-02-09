@@ -2,18 +2,14 @@
   <div class="page-container">
     <h1 class="page-title">我的</h1>
     
-    <!-- 用户信息 -->
     <div class="user-card">
-      <div class="avatar">
-        {{ user?.username?.charAt(0)?.toUpperCase() || 'U' }}
-      </div>
+      <div class="avatar">{{ user?.username?.charAt(0)?.toUpperCase() || 'U' }}</div>
       <div class="user-info">
         <div class="username">{{ user?.username || '未登录' }}</div>
         <div class="role" v-if="user?.is_admin">管理员</div>
       </div>
     </div>
     
-    <!-- 菜单列表 -->
     <div class="menu-list">
       <div class="menu-item" @click="goTo('/records')">
         <span class="icon">📝</span>
@@ -30,17 +26,14 @@
         <span class="label">统计报表</span>
         <span class="arrow">›</span>
       </div>
-      <div class="menu-item" v-if="isAdmin" @click="goTo('/admin')">
+      <div class="menu-item" v-if="user?.is_admin" @click="goTo('/admin')">
         <span class="icon">⚙️</span>
         <span class="label">管理后台</span>
         <span class="arrow">›</span>
       </div>
     </div>
     
-    <!-- 退出登录 -->
-    <div class="logout-btn" @click="logout">
-      退出登录
-    </div>
+    <div class="logout-btn" @click="logout">退出登录</div>
   </div>
 </template>
 
@@ -50,9 +43,6 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const user = ref(null)
-const loading = ref(false)
-
-const isAdmin = () => user.value?.is_admin || false
 
 onMounted(() => {
   const userStr = localStorage.getItem('user')
@@ -70,9 +60,6 @@ const goTo = (path) => {
 }
 
 const logout = () => {
-  if (loading.value) return
-  
-  loading.value = true
   localStorage.removeItem('token')
   localStorage.removeItem('user')
   router.push('/login')

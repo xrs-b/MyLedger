@@ -2,7 +2,6 @@
   <div class="page-container">
     <h1 class="page-title">记账列表</h1>
     
-    <!-- 统计摘要 -->
     <div class="stats-card" v-if="stats">
       <div class="stat-item income">
         <span class="label">收入</span>
@@ -14,24 +13,14 @@
       </div>
     </div>
     
-    <!-- 记账列表 -->
     <div class="records-list" v-if="!loading">
-      <div 
-        v-for="record in records" 
-        :key="record.id"
-        class="record-item"
-        @click="viewRecord(record)"
-      >
+      <div v-for="record in records" :key="record.id" class="record-item" @click="viewRecord(record)">
         <div class="record-left">
           <van-icon :name="record.type === 'income' ? 'arrow-up' : 'arrow-down'" size="32" />
         </div>
         <div class="record-center">
-          <div class="record-category">
-            {{ record.category_name || '未知分类' }}
-          </div>
-          <div class="record-date">
-            {{ formatDate(record.date) }}
-          </div>
+          <div class="record-category">{{ record.category_name || '未知分类' }}</div>
+          <div class="record-date">{{ formatDate(record.date) }}</div>
           <div class="record-project" v-if="record.project_title">
             <van-icon name="cluster-o" size="12" />
             {{ record.project_title }}
@@ -43,16 +32,11 @@
           </span>
         </div>
       </div>
-      
-      <!-- 空状态 -->
       <van-empty v-if="records.length === 0" description="暂无记账记录" />
     </div>
     
-    <div v-else class="loading">
-      加载中...
-    </div>
+    <div v-else class="loading">加载中...</div>
     
-    <!-- 记一笔按钮 -->
     <router-link to="/records/add" class="add-btn">
       <van-icon name="plus" size="24" />
       记一笔
@@ -63,7 +47,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/api/record'
+import api from '@/api'
 
 const router = useRouter()
 const records = ref([])
@@ -71,10 +55,7 @@ const stats = ref(null)
 const loading = ref(false)
 
 const formatAmount = (amount) => {
-  return Number(amount || 0).toLocaleString('zh-CN', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })
+  return Number(amount || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 const formatDate = (dateStr) => {
@@ -83,19 +64,15 @@ const formatDate = (dateStr) => {
 }
 
 const viewRecord = (record) => {
-  router.push(`/records/${record.id}`)
+  router.push(\`/records/\${record.id}\`)
 }
 
 const loadData = async () => {
   loading.value = true
-  
   try {
-    // 获取记账列表
-    const recordsRes = await api.getList({ page: 1, page_size: 50 })
+    const recordsRes = await api.get('/records', { page: 1, page_size: 50 })
     records.value = recordsRes.data.records || []
-    
-    // 获取统计
-    stats.value = await api.getStats({})
+    stats.value = await api.get('/records/stats/summary', {})
   } catch (error) {
     console.error('获取数据失败:', error)
   } finally {
@@ -103,9 +80,7 @@ const loadData = async () => {
   }
 }
 
-onMounted(() => {
-  loadData()
-})
+onMounted(loadData)
 </script>
 
 <style scoped>
@@ -118,30 +93,12 @@ onMounted(() => {
   color: #fff;
 }
 
-.stat-item {
-  flex: 1;
-  text-align: center;
-}
+.stat-item { flex: 1; text-align: center; }
+.stat-item.income { border-right: 1px solid rgba(255,255,255,0.3); }
+.stat-item .label { display: block; font-size: 12px; opacity: 0.8; margin-bottom: 4px; }
+.stat-item .amount { font-size: 20px; font-weight: 600; }
 
-.stat-item.income {
-  border-right: 1px solid rgba(255,255,255,0.3);
-}
-
-.stat-item .label {
-  display: block;
-  font-size: 12px;
-  opacity: 0.8;
-  margin-bottom: 4px;
-}
-
-.stat-item .amount {
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.records-list {
-  min-height: 200px;
-}
+.records-list { min-height: 200px; }
 
 .record-item {
   display: flex;
@@ -153,71 +110,31 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.record-left {
-  margin-right: 12px;
-  color: #1989fa;
-}
+.record-left { margin-right: 12px; color: #1989fa; }
+.record-center { flex: 1; }
+.record-category { font-size: 14px; color: #323233; margin-bottom: 4px; }
+.record-date { font-size: 12px; color: #969799; }
+.record-project { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #1989fa; margin-top: 4px; }
+.record-right { text-align: right; }
+.record-right .amount { font-size: 16px; font-weight: 600; }
+.record-right .amount.income { color: #07c160; }
+.record-right .amount.expense { color: #ee0a24; }
 
-.record-center {
-  flex: 1;
-}
-
-.record-category {
-  font-size: 14px;
-  color: #323233;
-  margin-bottom: 4px;
-}
-
-.record-date {
-  font-size: 12px;
-  color: #969799;
-}
-
-.record-project {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: #1989fa;
-  margin-top: 4px;
-}
-
-.record-right {
-  text-align: right;
-}
-
-.record-right .amount {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.record-right .amount.income {
-  color: #07c160;
-}
-
-.record-right .amount.expense {
-  color: #ee0a24;
-}
-
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: #969799;
-}
+.loading { text-align: center; padding: 40px; color: #969799; }
 
 .add-btn {
   position: fixed;
   right: 16px;
   bottom: 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   width: 56px;
   height: 56px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 50%;
   color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
   cursor: pointer;
 }

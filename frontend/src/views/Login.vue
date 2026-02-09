@@ -35,11 +35,11 @@
 
 <script setup>
 import { ref, reactive, getCurrentInstance } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
+import api from '@/api'
 
 const { proxy } = getCurrentInstance()
 const router = useRouter()
-const route = useRoute()
 
 const form = reactive({
   username: '',
@@ -78,26 +78,21 @@ const onSubmit = async () => {
     const data = await response.json()
     
     if (response.ok) {
-      // 存储 token 和用户信息
       localStorage.setItem('token', data.access_token)
       localStorage.setItem('user', JSON.stringify(data.user))
-      
-      showToast('登录成功！')
-      
-      // 跳转到 Profile 或首页
+      showToast('登录成功')
       setTimeout(() => {
         window.location.href = '/profile'
       }, 1000)
     } else {
       let msg = '登录失败'
       if (data.detail) {
-        msg = Array.isArray(data.detail) ? data.detail[0]?.msg : data.detail
+        msg = Array.isArray(data.detail) ? data.detail[0]?.msg || data.detail[0]?.type : data.detail
       }
       showToast(msg)
     }
   } catch (error) {
     showToast('登录失败，请重试')
-    
   } finally {
     loading.value = false
   }
