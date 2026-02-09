@@ -24,6 +24,13 @@
           { min: 6, max: 50, message: '密码需要6-50字符' }
         ]"
       />
+      <van-field
+        v-model="form.inviteCode"
+        name="inviteCode"
+        label="邀请码"
+        placeholder="请输入邀请码"
+        :rules="[{ required: true, message: '请输入邀请码' }]"
+      />
       <van-button 
         type="primary" 
         native-type="submit" 
@@ -53,7 +60,7 @@ const authStore = useAuthStore()
 const form = reactive({
   username: '',
   password: '',
-  inviteCode: 'vip1123'  // 固定邀请码，自动填入
+  inviteCode: ''
 })
 
 const loading = ref(false)
