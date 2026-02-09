@@ -109,7 +109,7 @@
     <!-- 日期选择器 -->
     <van-popup v-model:show="showDatePicker" position="bottom">
       <van-date-picker
-        :value="dateValue"
+        v-model:value="dateValue"
         title="选择日期"
         :min-date="new Date(2020, 0, 1)"
         :max-date="new Date()"
@@ -143,7 +143,7 @@ const loading = ref(false)
 const categories = ref({ expense: [], income: [] })
 const paymentMethods = ref([])
 const amountDisplay = ref('')
-const dateValue = ref(null)
+const dateValue = ref('')
 const dateDisplay = ref('')
 const showCategoryPicker = ref(false)
 const showSubCategoryPicker = ref(false)
@@ -256,12 +256,10 @@ const onSecondLevelConfirm = (e) => {
 
 // 日期确认
 const onDateConfirm = (e) => {
-  const values = e.selectedValues
-  if (values && values.length === 3) {
-    const date = new Date(values[0], values[1] - 1, values[2])
-    dateValue.value = date
-    dateDisplay.value = `${values[0]}-${String(values[1]).padStart(2, '0')}-${String(values[2]).padStart(2, '0')}`
-  }
+  const { year, month, day } = e
+  const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  dateValue.value = dateStr
+  dateDisplay.value = dateStr
   showDatePicker.value = false
 }
 
@@ -329,8 +327,12 @@ onMounted(async () => {
   
   // 初始化日期
   const now = new Date()
-  dateValue.value = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  dateDisplay.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  const day = now.getDate()
+  const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  dateValue.value = dateStr
+  dateDisplay.value = dateStr
 })
 </script>
 
