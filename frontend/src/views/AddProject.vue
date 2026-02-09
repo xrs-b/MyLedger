@@ -177,7 +177,7 @@ const onSubmit = async () => {
   loading.value = true
   
   try {
-    const result = await projectStore.create({
+    await projectStore.create({
       title: form.title,
       start_date: formatDateDisplay(startDateValue.value),
       end_date: formatDateDisplay(endDateValue.value),
@@ -186,17 +186,13 @@ const onSubmit = async () => {
       description: form.description || null
     })
     
-    if (result?.success) {
-      Toast.success('创建成功')
-      setTimeout(() => {
-        router.push('/projects')
-      }, 1000)
-    } else {
-      Toast.fail(result?.message || '创建失败')
-    }
+    Toast.success('创建成功')
+    setTimeout(() => {
+      router.push('/projects')
+    }, 1000)
   } catch (error) {
-    Toast.fail(error.response?.data?.detail || '创建失败')
     console.error('创建项目错误:', error)
+    Toast.fail(error?.data?.detail || error?.message || '创建失败')
   } finally {
     loading.value = false
   }
