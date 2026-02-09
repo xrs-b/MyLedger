@@ -38,11 +38,10 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import authApi from '@/api/auth'
 import { Toast } from 'vant'
 
 const router = useRouter()
-const authStore = useAuthStore()
 
 const form = reactive({
   username: '',
@@ -52,36 +51,49 @@ const form = reactive({
 const loading = ref(false)
 
 const onSubmit = async () => {
-  if (loading.value) return
+  if (!form.username || !form.password) {
+    Toast.fail('请填写完整信息')
+    return
+  }
   
   loading.value = true
-  Toast.loading('登录中...')
+  console.log('开始登录请求...')
   
   try {
-    const result = await authStore.login(form.username, form.password)
-    Toast.clear()
+    const formData = new URLSearchParams()
+    formData.append('username', form.username)
+    formData.append('password', form.password)
     
-    if (result?.success) {
+    const response = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: formData.toString()
+    })
+    
+    const data = await response.json()
+    console.log('登录响应:', data)
+    
+    if (response.ok) {
+      localStorage.setItem('token', data.access_token)
+      localStorage.setItem('user', JSON.stringify(data.user))
       Toast.success('登录成功！')
-      router.push('/')
+      setTimeout(() => router.push('/'), 1000)
     } else {
-      Toast.fail(result?.message || '登录失败')
+      let msg = '登录失败'
+      if (data.detail) {
+        if (Array.isArray(data.detail)) {
+          msg = data.detail[0]?.msg || data.detail[0]?.type || JSON.stringify(data.detail[0])
+        } else {
+          msg = data.detail
+        }
+      }
+      Toast.fail(msg)
     }
   } catch (error) {
-    Toast.clear()
-    
-    let errorMsg = '登录失败，请重试'
-    if (error?.data?.detail) {
-      const detail = error.data.detail
-      if (Array.isArray(detail) && detail.length > 0) {
-        errorMsg = detail[0]?.msg || detail[0]?.type || JSON.stringify(detail[0])
-      } else if (typeof detail === 'string') {
-        errorMsg = detail
-      }
-    }
-    
-    Toast.fail(errorMsg)
     console.error('登录错误:', error)
+    Toast.fail('登录失败，请重试')
   } finally {
     loading.value = false
   }

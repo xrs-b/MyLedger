@@ -8,10 +8,7 @@
         name="username"
         label="账号名"
         placeholder="请输入账号名 (3-50字符)"
-        :rules="[
-          { required: true, message: '请输入账号名' },
-          { min: 3, max: 50, message: '账号名需要3-50字符' }
-        ]"
+        :rules="[{ required: true, message: '请输入账号名' }]"
       />
       <van-field
         v-model="form.password"
@@ -19,10 +16,7 @@
         name="password"
         label="密码"
         placeholder="请输入密码 (6-50字符)"
-        :rules="[
-          { required: true, message: '请输入密码' },
-          { min: 6, max: 50, message: '密码需要6-50字符' }
-        ]"
+        :rules="[{ required: true, message: '请输入密码' }]"
       />
       <van-field
         v-model="form.inviteCode"
@@ -51,11 +45,9 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 import { Toast } from 'vant'
 
 const router = useRouter()
-const authStore = useAuthStore()
 
 const form = reactive({
   username: '',
@@ -66,42 +58,50 @@ const form = reactive({
 const loading = ref(false)
 
 const onSubmit = async () => {
+  if (!form.username || !form.password || !form.inviteCode) {
+    Toast.fail('请填写完整信息')
+    return
+  }
+  
   loading.value = true
+  console.log('开始注册请求...')
   
   try {
-    await authStore.register(
-      form.username,
-      form.password,
-      form.inviteCode
-    )
+    const formData = new URLSearchParams()
+    formData.append('username', form.username)
+    formData.append('password', form.password)
+    formData.append('invite_code', form.inviteCode)
     
-    Toast.success('注册成功！')
+    const response = await fetch('/api/v1/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: formData.toString()
+    })
     
-    setTimeout(() => {
-      router.push('/login')
-    }, 2000)
-  } catch (error) {
-    // 解析错误信息
-    let errorMsg = '注册失败，请重试'
+    const data = await response.json()
+    console.log('注册响应:', data)
     
-    if (error?.data?.detail) {
-      const detail = error.data.detail
-      if (Array.isArray(detail) && detail.length > 0) {
-        // FastAPI 返回的验证错误是数组
-        errorMsg = detail[0]?.msg || detail[0]?.type || JSON.stringify(detail[0])
-      } else if (typeof detail === 'string') {
-        errorMsg = detail
-      } else {
-        errorMsg = JSON.stringify(detail)
+    if (response.ok) {
+      Toast.success('注册成功！')
+      setTimeout(() => router.push('/login'), 2000)
+    } else {
+      let msg = '注册失败'
+      if (data.detail) {
+        if (Array.isArray(data.detail)) {
+          msg = data.detail[0]?.msg || data.detail[0]?.type || JSON.stringify(data.detail[0])
+        } else {
+          msg = data.detail
+        }
+      } else if (data.message) {
+        msg = data.message
       }
-    } else if (error?.data?.message) {
-      errorMsg = error.data.message
-    } else if (error?.message) {
-      errorMsg = error.message
+      Toast.fail(msg)
     }
-    
-    Toast.fail(errorMsg)
+  } catch (error) {
     console.error('注册错误:', error)
+    Toast.fail('注册失败，请重试')
   } finally {
     loading.value = false
   }
