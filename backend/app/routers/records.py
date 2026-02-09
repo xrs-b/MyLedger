@@ -10,7 +10,7 @@ from typing import List, Optional
 from datetime import date, datetime
 
 from ..database import get_db
-from ..models import Record, User
+from ..models import Record, User, Category, CategoryItem, PaymentMethod
 from ..schemas.record import (
     RecordCreate, RecordUpdate, RecordResponse,
     RecordDetailResponse, RecordListResponse, RecordStatsResponse,
