@@ -14,8 +14,8 @@ from decimal import Decimal
 class ProjectCreate(BaseModel):
     """创建项目请求"""
     title: str = Field(..., min_length=1, max_length=100, description="项目标题")
-    start_date: date = Field(..., description="开始日期")
-    end_date: date = Field(..., description="结束日期")
+    start_date: str = Field(..., description="开始日期 (YYYY-MM-DD)")
+    end_date: str = Field(..., description="结束日期 (YYYY-MM-DD)")
     budget: Decimal = Field(..., ge=0, description="预算金额")
     member_count: int = Field(1, ge=1, description="参与人数")
     description: Optional[str] = Field(None, max_length=500, description="项目描述")

@@ -5,13 +5,13 @@
     <!-- 类型选择 -->
     <div class="type-selector">
       <van-button 
-        :type="form.type === 'expense' ? 'primary' : 'default'" 
+        :class="['type-btn', form.type === 'expense' ? 'expense-active' : '']"
         @click="form.type = 'expense'"
       >
         支出
       </van-button>
       <van-button 
-        :type="form.type === 'income' ? 'success' : 'default'" 
+        :class="['type-btn', form.type === 'income' ? 'income-active' : '']"
         @click="form.type = 'income'"
       >
         收入
@@ -109,8 +109,10 @@
     <!-- 日期选择器 -->
     <van-popup v-model:show="showDatePicker" position="bottom">
       <van-date-picker
-        v-model:value="dateValue"
+        v-model="dateValue"
         title="选择日期"
+        :min-date="minDate"
+        :max-date="maxDate"
         @confirm="onDateConfirm"
         @cancel="showDatePicker = false"
       />
@@ -336,8 +338,28 @@ onMounted(async () => {
   margin-bottom: 16px;
 }
 
-.type-selector .van-button {
+.type-btn {
   flex: 1;
+  border: 1px solid #ebedf0 !important;
+  background: #fff !important;
+  color: #969799 !important;
+  font-weight: 500;
+}
+
+.type-btn:active {
+  opacity: 0.8;
+}
+
+.type-btn.expense-active {
+  border-color: #e74c3c !important;
+  background: rgba(231, 76, 60, 0.1) !important;
+  color: #e74c3c !important;
+}
+
+.type-btn.income-active {
+  border-color: #07c160 !important;
+  background: rgba(7, 193, 96, 0.1) !important;
+  color: #07c160 !important;
 }
 
 .amount-field {
