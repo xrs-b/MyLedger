@@ -24,6 +24,6 @@ app.use(Vant)            // Vant UI 组件库
 app.config.globalProperties.$toast = Toast
 
 // 挂载应用
-app.mount('#app')}
+app.mount('#app')
 
 console.log('MyLedger Frontend Started')
