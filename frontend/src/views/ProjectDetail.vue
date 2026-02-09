@@ -181,12 +181,18 @@ const completeProject = async () => {
 }
 
 const reopenProject = async () => {
-  const result = await projectStore.reopen(project.value.id)
-  if (result.success) {
+  try {
+    await projectStore.reopen(project.value.id)
     Toast.success('项目已重新打开')
-    project.value = projectStore.currentProject
-  } else {
-    Toast.fail(result.message)
+    
+    // 重新获取项目数据
+    const result = await projectStore.fetchProject(route.params.id)
+    if (result.success) {
+      project.value = result.data
+    }
+  } catch (error) {
+    console.error('重新打开项目错误:', error)
+    Toast.fail(error?.message || '操作失败')
   }
 }
 
@@ -195,28 +201,40 @@ const deleteProject = async () => {
 }
 
 const confirmComplete = async () => {
-  const result = await projectStore.complete(project.value.id)
-  if (result.success) {
+  try {
+    await projectStore.complete(project.value.id)
     Toast.success('项目已完成')
-    project.value = projectStore.currentProject
-  } else {
-    Toast.fail(result.message)
+    
+    // 重新获取项目数据
+    const result = await projectStore.fetchProject(route.params.id)
+    if (result.success) {
+      project.value = result.data
+    }
+  } catch (error) {
+    console.error('完成项目错误:', error)
+    Toast.fail(error?.message || '操作失败')
   }
   showCompleteDialog.value = false
 }
 
 const confirmDelete = async () => {
   loading.value = true
-  const result = await projectStore.delete(project.value.id)
   
-  if (result.success) {
+  try {
+    await projectApi.delete(project.value.id)
     Toast.success('删除成功')
-    router.push('/projects')
-  } else {
-    Toast.fail(result.message)
+    showDeleteDialog.value = false
+    
+    // 延迟跳转，让 Toast 显示完
+    setTimeout(() => {
+      router.push('/projects')
+    }, 500)
+  } catch (error) {
+    console.error('删除项目错误:', error)
+    Toast.fail(error?.data?.detail || error?.message || '删除失败')
+    loading.value = false
+    showDeleteDialog.value = false
   }
-  loading.value = false
-  showDeleteDialog.value = false
 }
 
 // 初始化

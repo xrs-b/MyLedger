@@ -96,6 +96,36 @@ export const useProjectStore = defineStore('project', {
       }
     },
 
+    async complete(id) {
+      this.loading = true
+      
+      try {
+        await projectApi.update(id, { status: 'completed' })
+        await this.fetchProjects()
+        return { success: true }
+      } catch (error) {
+        this.error = error.data?.detail || '操作失败'
+        return { success: false, message: this.error }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async reopen(id) {
+      this.loading = true
+      
+      try {
+        await projectApi.update(id, { status: 'ongoing' })
+        await this.fetchProjects()
+        return { success: true }
+      } catch (error) {
+        this.error = error.data?.detail || '操作失败'
+        return { success: false, message: this.error }
+      } finally {
+        this.loading = false
+      }
+    },
+
     clearError() {
       this.error = null
     }
