@@ -75,17 +75,13 @@ const onSubmit = async () => {
       form.inviteCode
     )
     
-    Toast.success({
-      message: '注册成功！',
-      duration: 1500
-    })
+    Toast.success('注册成功！')
     
-    // 2秒后跳转登录页
     setTimeout(() => {
       router.push('/login')
     }, 2000)
   } catch (error) {
-    Toast.fail(error.response?.data?.detail || '注册失败，请重试')
+    Toast.fail('注册失败，请重试')
     console.error('注册错误:', error)
   } finally {
     loading.value = false
