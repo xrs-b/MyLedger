@@ -8,7 +8,6 @@
         name="username"
         label="账号名"
         placeholder="请输入账号名"
-        :rules="[{ required: true, message: '请输入账号名' }]"
       />
       <van-field
         v-model="form.password"
@@ -16,7 +15,6 @@
         name="password"
         label="密码"
         placeholder="请输入密码"
-        :rules="[{ required: true, message: '请输入密码' }]"
       />
       <van-button 
         type="primary" 
@@ -49,8 +47,12 @@ const form = reactive({
 
 const loading = ref(false)
 
-const showToast = (msg, type = 'fail') => {
-  proxy.$toast?.(msg) || alert(msg)
+const showToast = (msg) => {
+  if (proxy && proxy.$toast) {
+    proxy.$toast(msg)
+  } else {
+    alert(msg)
+  }
 }
 
 const onSubmit = async () => {
@@ -79,12 +81,12 @@ const onSubmit = async () => {
     if (response.ok) {
       localStorage.setItem('token', data.access_token)
       localStorage.setItem('user', JSON.stringify(data.user))
-      showToast('登录成功！', 'success')
+      showToast('登录成功！')
       setTimeout(() => router.push('/'), 1000)
     } else {
       let msg = '登录失败'
       if (data.detail) {
-        msg = Array.isArray(data.detail) ? data.detail[0]?.msg || data.detail[0]?.type : data.detail
+        msg = Array.isArray(data.detail) ? data.detail[0]?.msg : data.detail
       }
       showToast(msg)
     }
