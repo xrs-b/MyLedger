@@ -2,57 +2,62 @@
  * Axios 实例配置
  */
 
-import axios from 'axios'
+const API_BASE_URL = '/api/v1'
 
-const api = axios.create({
-  baseURL: '/api/v1',
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json'
+// 封装的 fetch 函数，自动携带 token
+async function fetchApi(url, options = {}) {
+  const token = localStorage.getItem('token')
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers
   }
-})
-
-// 请求拦截器 - 添加认证token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
   }
-)
-
-// 响应拦截器 - 处理错误
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response) {
-      const { status, data } = error.response
-      
-      // 401 未授权 - 清除token并跳转登录
-      if (status === 401) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        
-        // 如果不是在登录页，跳转登录
-        if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/login'
-        }
+  
+  const response = await fetch(`${API_BASE_URL}${url}`, {
+    ...options,
+    headers
+  })
+  
+  const data = await response.json().catch(() => ({}))
+  
+  if (!response.ok) {
+    // 401 未授权
+    if (response.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login'
       }
-      
-      // 返回错误信息
-      return Promise.reject({
-        status,
-        data: data.detail ? { detail: data.detail } : data
-      })
     }
     
-    return Promise.reject(error)
+    throw { status: response.status, data }
   }
-)
+  
+  return { data }
+}
+
+// API 方法
+export const api = {
+  get: (url, params) => {
+    const query = params ? '?' + new URLSearchParams(params).toString() : ''
+    return fetchApi(url + query, { method: 'GET' })
+  },
+  
+  post: (url, data) => fetchApi(url, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  
+  put: (url, data) => fetchApi(url, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  }),
+  
+  delete: (url) => fetchApi(url, { method: 'DELETE' })
+}
 
 export default api

@@ -5,9 +5,8 @@
 import api from './index'
 
 const adminApi = {
-  // 用户管理
   async getUsers(page = 1, pageSize = 20) {
-    return api.get('/admin/users', { params: { page, page_size: pageSize } })
+    return api.get('/admin/users', { page, page_size: pageSize })
   },
 
   async getUserCount() {
@@ -22,18 +21,16 @@ const adminApi = {
     return api.delete(`/admin/users/${id}`)
   },
 
-  // 记录管理
   async getRecords(page = 1, pageSize = 20) {
-    return api.get('/admin/records', { params: { page, page_size: pageSize } })
+    return api.get('/admin/records', { page, page_size: pageSize })
   },
 
   async deleteRecord(id) {
     return api.delete(`/admin/records/${id}`)
   },
 
-  // 分类管理
   async getCategories(type = null) {
-    return api.get('/admin/categories', { params: { type } })
+    return api.get('/admin/categories', { type })
   },
 
   async createCategory(data) {
@@ -48,9 +45,8 @@ const adminApi = {
     return api.delete(`/admin/categories/${id}`)
   },
 
-  // 二级分类管理
   async getCategoryItems(categoryId = null) {
-    return api.get('/admin/category-items', { params: { category_id: categoryId } })
+    return api.get('/admin/category-items', { category_id: categoryId })
   },
 
   async createCategoryItem(data) {
@@ -61,7 +57,6 @@ const adminApi = {
     return api.delete(`/admin/category-items/${id}`)
   },
 
-  // 支付方式管理
   async getPaymentMethods() {
     return api.get('/admin/payment-methods')
   },
@@ -74,16 +69,14 @@ const adminApi = {
     return api.delete(`/admin/payment-methods/${id}`)
   },
 
-  // 项目管理
   async getProjects(status = null, page = 1, pageSize = 20) {
-    return api.get('/admin/projects', { params: { status, page, page_size: pageSize } })
+    return api.get('/admin/projects', { status, page, page_size: pageSize })
   },
 
   async deleteProject(id) {
     return api.delete(`/admin/projects/${id}`)
   },
 
-  // 统计数据
   async getStats() {
     return api.get('/admin/stats')
   }
