@@ -257,9 +257,9 @@ const onSecondLevelConfirm = (e) => {
 // 日期确认
 const onDateConfirm = (e) => {
   const { year, month, day } = e
-  const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-  dateValue.value = dateStr
-  dateDisplay.value = dateStr
+  // van-date-picker 需要 YYYY/MM/DD 格式
+  dateValue.value = `${year}/${month}/${day}`
+  dateDisplay.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
   showDatePicker.value = false
 }
 
@@ -330,9 +330,9 @@ onMounted(async () => {
   const year = now.getFullYear()
   const month = now.getMonth() + 1
   const day = now.getDate()
-  const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-  dateValue.value = dateStr
-  dateDisplay.value = dateStr
+  // van-date-picker 需要 YYYY/MM/DD 格式
+  dateValue.value = `${year}/${month}/${day}`
+  dateDisplay.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 })
 </script>
 
