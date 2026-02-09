@@ -111,8 +111,6 @@
       <van-date-picker
         v-model:value="dateValue"
         title="选择日期"
-        :min-date="new Date(2020, 0, 1)"
-        :max-date="new Date()"
         @confirm="onDateConfirm"
         @cancel="showDatePicker = false"
       />
@@ -143,7 +141,7 @@ const loading = ref(false)
 const categories = ref({ expense: [], income: [] })
 const paymentMethods = ref([])
 const amountDisplay = ref('')
-const dateValue = ref('')
+const dateValue = ref([])
 const dateDisplay = ref('')
 const showCategoryPicker = ref(false)
 const showSubCategoryPicker = ref(false)
@@ -254,12 +252,10 @@ const onSecondLevelConfirm = (e) => {
   showSubCategoryPicker.value = false
 }
 
-// 日期确认
-const onDateConfirm = (e) => {
-  const { year, month, day } = e
-  // van-date-picker 需要 YYYY/MM/DD 格式
-  dateValue.value = `${year}/${month}/${day}`
-  dateDisplay.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+// 日期确认 - 直接使用数组值
+const onDateConfirm = () => {
+  const [year, month, day] = dateValue.value
+  dateDisplay.value = `${year}-${month}-${day}`
   showDatePicker.value = false
 }
 
@@ -325,14 +321,11 @@ onMounted(async () => {
     console.error('获取数据失败:', error)
   }
   
-  // 初始化日期
+  // 初始化日期 - 使用数组格式 [year, month, day]
   const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth() + 1
-  const day = now.getDate()
-  // van-date-picker 需要 YYYY/MM/DD 格式
-  dateValue.value = `${year}/${month}/${day}`
-  dateDisplay.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  const todayStr = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')]
+  dateValue.value = [...todayStr]
+  dateDisplay.value = `${todayStr[0]}-${todayStr[1]}-${todayStr[2]}`
 })
 </script>
 
