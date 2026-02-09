@@ -102,7 +102,7 @@
             class="record-item"
           >
             <div class="record-icon">
-              <van-icon :name="record.type === 'income' ? 'arrow-up' : 'arrow-down'" />
+              <span :class="['type-icon', record.type]">{{ record.type === 'income' ? '+' : '-' }}</span>
             </div>
             <div class="record-info">
               <div class="record-amount" :class="record.type">
@@ -348,10 +348,28 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border-radius: 50%;
   margin-right: 12px;
-  color: #1989fa;
+}
+
+.type-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.type-icon.income {
+  background: #07c160;
+  color: #fff;
+}
+
+.type-icon.expense {
+  background: #ee0a24;
+  color: #fff;
 }
 
 .record-info {
