@@ -36,11 +36,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
-import authApi from '@/api/auth'
-import { Toast } from 'vant'
 
+const { proxy } = getCurrentInstance()
 const router = useRouter()
 
 const form = reactive({
@@ -50,14 +49,17 @@ const form = reactive({
 
 const loading = ref(false)
 
+const showToast = (msg, type = 'fail') => {
+  proxy.$toast?.(msg) || alert(msg)
+}
+
 const onSubmit = async () => {
   if (!form.username || !form.password) {
-    Toast.fail('请填写完整信息')
+    showToast('请填写完整信息')
     return
   }
   
   loading.value = true
-  console.log('开始登录请求...')
   
   try {
     const formData = new URLSearchParams()
@@ -73,27 +75,21 @@ const onSubmit = async () => {
     })
     
     const data = await response.json()
-    console.log('登录响应:', data)
     
     if (response.ok) {
       localStorage.setItem('token', data.access_token)
       localStorage.setItem('user', JSON.stringify(data.user))
-      Toast.success('登录成功！')
+      showToast('登录成功！', 'success')
       setTimeout(() => router.push('/'), 1000)
     } else {
       let msg = '登录失败'
       if (data.detail) {
-        if (Array.isArray(data.detail)) {
-          msg = data.detail[0]?.msg || data.detail[0]?.type || JSON.stringify(data.detail[0])
-        } else {
-          msg = data.detail
-        }
+        msg = Array.isArray(data.detail) ? data.detail[0]?.msg || data.detail[0]?.type : data.detail
       }
-      Toast.fail(msg)
+      showToast(msg)
     }
   } catch (error) {
-    console.error('登录错误:', error)
-    Toast.fail('登录失败，请重试')
+    showToast('登录失败，请重试')
   } finally {
     loading.value = false
   }

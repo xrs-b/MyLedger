@@ -43,10 +43,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
-import { Toast } from 'vant'
 
+const { proxy } = getCurrentInstance()
 const router = useRouter()
 
 const form = reactive({
@@ -57,14 +57,17 @@ const form = reactive({
 
 const loading = ref(false)
 
+const showToast = (msg, type = 'fail') => {
+  proxy.$toast?.(msg) || alert(msg)
+}
+
 const onSubmit = async () => {
   if (!form.username || !form.password || !form.inviteCode) {
-    Toast.fail('请填写完整信息')
+    showToast('请填写完整信息')
     return
   }
   
   loading.value = true
-  console.log('开始注册请求...')
   
   try {
     const formData = new URLSearchParams()
@@ -81,27 +84,21 @@ const onSubmit = async () => {
     })
     
     const data = await response.json()
-    console.log('注册响应:', data)
     
     if (response.ok) {
-      Toast.success('注册成功！')
+      showToast('注册成功！', 'success')
       setTimeout(() => router.push('/login'), 2000)
     } else {
       let msg = '注册失败'
       if (data.detail) {
-        if (Array.isArray(data.detail)) {
-          msg = data.detail[0]?.msg || data.detail[0]?.type || JSON.stringify(data.detail[0])
-        } else {
-          msg = data.detail
-        }
+        msg = Array.isArray(data.detail) ? data.detail[0]?.msg || data.detail[0]?.type : data.detail
       } else if (data.message) {
         msg = data.message
       }
-      Toast.fail(msg)
+      showToast(msg)
     }
   } catch (error) {
-    console.error('注册错误:', error)
-    Toast.fail('注册失败，请重试')
+    showToast('注册失败，请重试')
   } finally {
     loading.value = false
   }
