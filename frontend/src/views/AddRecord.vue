@@ -195,7 +195,7 @@ const showToast = (msg) => {
   if (proxy && proxy.$toast) {
     proxy.$toast(msg)
   } else {
-    console.log('Toast:', msg)
+    
   }
 }
 

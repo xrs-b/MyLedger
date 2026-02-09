@@ -51,8 +51,6 @@ const loading = ref(false)
 const showToast = (msg) => {
   if (proxy && proxy.$toast) {
     proxy.$toast(msg)
-  } else {
-    console.log('Toast:', msg)
   }
 }
 
@@ -99,7 +97,7 @@ const onSubmit = async () => {
     }
   } catch (error) {
     showToast('登录失败，请重试')
-    console.error('登录错误:', error)
+    
   } finally {
     loading.value = false
   }
