@@ -16,7 +16,7 @@
     <div class="records-list" v-if="!loading">
       <div v-for="record in records" :key="record.id" class="record-item" @click="viewRecord(record)">
         <div class="record-left">
-          <van-icon :name="record.type === 'income' ? 'arrow-up' : 'arrow-down'" size="32" />
+          <span :class="['type-icon', record.type]">{{ record.type === 'income' ? '+' : '-' }}</span>
         </div>
         <div class="record-center">
           <div class="record-category">{{ record.category_name || '未知分类' }}</div>
@@ -72,7 +72,20 @@ const loadData = async () => {
   try {
     const recordsRes = await api.get('/records', { page: 1, page_size: 50 })
     records.value = recordsRes.data.records || []
-    stats.value = await api.get('/records/stats/summary', {})
+    console.log('记录列表:', records.value)
+    
+    // 计算本地统计
+    const income = records.value.filter(r => r.type === 'income')
+    const expense = records.value.filter(r => r.type === 'expense')
+    const incomeTotal = income.reduce((sum, r) => sum + Number(r.amount), 0)
+    const expenseTotal = expense.reduce((sum, r) => sum + Number(r.amount), 0)
+    
+    stats.value = {
+      income_amount: incomeTotal,
+      expense_amount: expenseTotal,
+      total_count: records.value.length
+    }
+    console.log('统计结果:', stats.value)
   } catch (error) {
     console.error('获取数据失败:', error)
   } finally {
@@ -110,7 +123,25 @@ onMounted(loadData)
   cursor: pointer;
 }
 
-.record-left { margin-right: 12px; color: #1989fa; }
+.record-left { margin-right: 12px; }
+.type-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+.type-icon.income {
+  background: rgba(7, 193, 96, 0.15);
+  color: #07c160;
+}
+.type-icon.expense {
+  background: rgba(238, 10, 36, 0.15);
+  color: #ee0a24;
+}
 .record-center { flex: 1; }
 .record-category { font-size: 14px; color: #323233; margin-bottom: 4px; }
 .record-date { font-size: 12px; color: #969799; }
