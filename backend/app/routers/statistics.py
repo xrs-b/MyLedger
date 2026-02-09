@@ -84,7 +84,7 @@ async def get_summary(
 async def get_by_category(
     start_date: Optional[str] = Query(None, description="开始日期"),
     end_date: Optional[str] = Query(None, description="结束日期"),
-    type: Optional[str] = Query(None, description="类型: income/expense"),
+    record_type: Optional[str] = Query(None, alias="type", description="类型: income/expense"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -112,8 +112,8 @@ async def get_by_category(
             end = end + timedelta(days=1)
             subquery = subquery.filter(Record.date < end)
     
-    if type:
-        subquery = subquery.filter(Record.type == type)
+    if record_type:
+        subquery = subquery.filter(Record.type == record_type)
     
     subquery = subquery.group_by(Record.category_id).subquery()
     
@@ -156,7 +156,7 @@ async def get_by_category(
 async def get_by_day(
     start_date: Optional[str] = Query(None, description="开始日期"),
     end_date: Optional[str] = Query(None, description="结束日期"),
-    type: Optional[str] = Query(None, description="类型"),
+    record_type: Optional[str] = Query(None, alias="type", description="类型"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -184,8 +184,8 @@ async def get_by_day(
             end = end + timedelta(days=1)
             query = query.filter(Record.date < end)
     
-    if type:
-        query = query.filter(Record.type == type)
+    if record_type:
+        query = query.filter(Record.type == record_type)
     
     query = query.group_by(func.date(Record.date)).order_by(func.date(Record.date))
     
