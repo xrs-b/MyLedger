@@ -128,7 +128,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import adminApi from '@/api/admin'
-import { Toast, MessageBox } from 'vant'
+import { Toast, showDialog as Dialog } from 'vant'
 
 const authStore = useAuthStore()
 

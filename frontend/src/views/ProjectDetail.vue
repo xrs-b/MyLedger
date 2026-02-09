@@ -124,7 +124,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
-import { Toast, MessageBox } from 'vant'
+import { Toast, showDialog as Dialog } from 'vant'
 
 const route = useRoute()
 const router = useRouter()
