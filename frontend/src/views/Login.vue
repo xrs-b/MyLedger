@@ -35,10 +35,11 @@
 
 <script setup>
 import { ref, reactive, getCurrentInstance } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const { proxy } = getCurrentInstance()
 const router = useRouter()
+const route = useRoute()
 
 const form = reactive({
   username: '',
@@ -51,7 +52,7 @@ const showToast = (msg) => {
   if (proxy && proxy.$toast) {
     proxy.$toast(msg)
   } else {
-    alert(msg)
+    console.log('Toast:', msg)
   }
 }
 
@@ -79,10 +80,16 @@ const onSubmit = async () => {
     const data = await response.json()
     
     if (response.ok) {
+      // 存储 token 和用户信息
       localStorage.setItem('token', data.access_token)
       localStorage.setItem('user', JSON.stringify(data.user))
+      
       showToast('登录成功！')
-      setTimeout(() => router.push('/'), 1000)
+      
+      // 跳转到 Profile 或首页
+      setTimeout(() => {
+        window.location.href = '/profile'
+      }, 1000)
     } else {
       let msg = '登录失败'
       if (data.detail) {
@@ -92,6 +99,7 @@ const onSubmit = async () => {
     }
   } catch (error) {
     showToast('登录失败，请重试')
+    console.error('登录错误:', error)
   } finally {
     loading.value = false
   }
