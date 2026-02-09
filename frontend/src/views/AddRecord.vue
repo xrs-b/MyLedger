@@ -58,17 +58,16 @@
     </van-field>
     
     <!-- 支付方式 -->
-    <van-field
-      v-model="paymentMethodName"
-      readonly
-      label="支付方式"
-      placeholder="请选择支付方式"
-      @click="showPaymentPicker = true"
-    >
-      <template #right-icon>
+    <div class="form-item" @click="showPaymentPicker = true">
+      <div class="form-label">支付方式</div>
+      <div class="form-value">
+        <span v-if="paymentMethodName">
+          {{ paymentMethodName }}
+        </span>
+        <span v-else class="placeholder">请选择支付方式</span>
         <van-icon name="arrow" />
-      </template>
-    </van-field>
+      </div>
+    </div>
     
     <!-- 备注 -->
     <van-field
@@ -92,14 +91,13 @@
       保存
     </van-button>
     
-    <!-- 分类选择器 - 两列联动 -->
-    <van-popup v-model:show="showCategoryPicker" position="bottom" :style="{ height: '60%' }">
+    <!-- 分类选择器 -->
+    <van-popup v-model:show="showCategoryPicker" position="bottom" :style="{ height: '50%' }">
       <van-picker
         :columns="categoryColumns"
         title="选择分类"
         @confirm="onCategoryConfirm"
         @cancel="showCategoryPicker = false"
-        @change="onCategoryChange"
       />
     </van-popup>
     
@@ -127,19 +125,17 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRoute } from 'vue-router'
-import { useRecordStore } from '@/stores/record'
-import { useCategoryStore } from '@/stores/category'
-import { storeToRefs } from 'pinia'
-import { Toast } from 'vant'
+import recordApi from '@/api/record'
+import categoryApi from '@/api/category'
 
+const { proxy } = getCurrentInstance()
 const route = useRoute()
-const recordStore = useRecordStore()
-const categoryStore = useCategoryStore()
-const { categories, paymentMethods } = storeToRefs(categoryStore)
 
 const loading = ref(false)
+const categories = ref({ expense: [], income: [] })
+const paymentMethods = ref([])
 const amountDisplay = ref('')
 const dateDisplay = ref('')
 const dateValue = ref(new Date())
@@ -160,32 +156,25 @@ const form = reactive({
   project_id: route.query.project_id ? parseInt(route.query.project_id) : null
 })
 
-// 分类两列联动
+// 分类选项（扁平化）
 const categoryColumns = computed(() => {
   const type = form.type || 'expense'
   const typeCategories = categories.value[type] || []
+  const options = []
   
-  // 第一列：一级分类
-  const firstColumn = typeCategories.map(c => ({
-    text: c.name,
-    value: c.id
-  }))
+  typeCategories.forEach(cat => {
+    if (cat.items) {
+      cat.items.forEach(item => {
+        options.push({
+          text: `${cat.name} - ${item.name}`,
+          value: item.id,
+          categoryId: cat.id
+        })
+      })
+    }
+  })
   
-  // 默认选中第一个分类，获取其二级分类
-  let secondColumn = []
-  if (typeCategories.length > 0) {
-    const firstCategory = typeCategories[0]
-    secondColumn = (firstCategory.items || []).map(item => ({
-      text: item.name,
-      value: item.id,
-      categoryId: firstCategory.id
-    }))
-  }
-  
-  return [
-    { values: firstColumn, className: 'first-column' },
-    { values: secondColumn, className: 'second-column' }
-  ]
+  return options
 })
 
 // 支付方式选项
@@ -198,8 +187,17 @@ const paymentMethodOptions = computed(() => {
 
 // 是否可以提交
 const canSubmit = computed(() => {
-  return form.amount > 0 && form.category_id && form.category_item_id
+  return form.amount > 0 && form.category_id
 })
+
+// 显示提示
+const showToast = (msg) => {
+  if (proxy && proxy.$toast) {
+    proxy.$toast(msg)
+  } else {
+    console.log('Toast:', msg)
+  }
+}
 
 // 金额输入处理
 const onAmountInput = (e) => {
@@ -216,35 +214,16 @@ const onAmountInput = (e) => {
   form.amount = value ? parseFloat(value) : 0
 }
 
-// 分类变化（一级分类变化时更新二级分类）
-const onCategoryChange = (picker, values, index) => {
-  if (index === 0) {
-    const type = form.type || 'expense'
-    const typeCategories = categories.value[type] || []
-    const selectedCategory = typeCategories.find(c => c.id === values[0].value)
-    if (selectedCategory) {
-      const secondColumn = picker.getColumnValues(1)
-      const newSecondColumn = (selectedCategory.items || []).map(item => ({
-        text: item.name,
-        value: item.id,
-        categoryId: selectedCategory.id
-      }))
-      picker.setColumnValues(1, newSecondColumn)
-      // 默认选中第一个
-      if (newSecondColumn.length > 0) {
-        picker.setValues([values[0], newSecondColumn[0]])
-      }
-    }
-  }
-}
-
 // 分类确认
-const onCategoryConfirm = (picker) => {
-  const values = picker.getValues()
-  if (values && values.length === 2) {
-    form.category_id = values[0].value
-    form.category_item_id = values[1].value
-    selectedCategoryName.value = `${values[0].text} - ${values[1].text}`
+const onCategoryConfirm = (e) => {
+  if (e.selectedValues && e.selectedValues.length > 0) {
+    const idx = e.selectedValues[0]
+    const selected = categoryColumns.value[idx]
+    if (selected) {
+      form.category_id = selected.categoryId
+      form.category_item_id = selected.value
+      selectedCategoryName.value = selected.text
+    }
   }
   showCategoryPicker.value = false
 }
@@ -261,22 +240,25 @@ const onDateConfirm = () => {
 
 // 支付方式确认
 const onPaymentConfirm = (e) => {
-  form.payment_method_id = e.selectedValues[0]
-  paymentMethodName.value = e.selectedOptions[0].text
+  if (e.selectedValues && e.selectedValues.length > 0) {
+    form.payment_method_id = e.selectedValues[0]
+    const selected = paymentMethodOptions.value.find(p => p.value === form.payment_method_id)
+    paymentMethodName.value = selected?.text || ''
+  }
   showPaymentPicker.value = false
 }
 
 // 提交
 const onSubmit = async () => {
   if (!canSubmit.value) {
-    Toast.fail('请填写完整信息')
+    showToast('请填写完整信息')
     return
   }
   
   loading.value = true
   
   try {
-    const result = await recordStore.create({
+    const data = {
       type: form.type,
       category_id: form.category_id,
       category_item_id: form.category_item_id,
@@ -285,19 +267,17 @@ const onSubmit = async () => {
       remark: form.remark || null,
       payment_method_id: form.payment_method_id || null,
       project_id: form.project_id || null
-    })
-    
-    if (result?.success) {
-      Toast.success('保存成功')
-      setTimeout(() => {
-        window.history.back()
-      }, 1000)
-    } else {
-      Toast.fail(result?.message || '保存失败')
     }
+    
+    await recordApi.create(data)
+    showToast('保存成功')
+    
+    setTimeout(() => {
+      window.history.back()
+    }, 1000)
   } catch (error) {
-    Toast.fail(error.response?.data?.detail || '保存失败')
     console.error('保存错误:', error)
+    showToast(error?.data?.detail || '保存失败')
   } finally {
     loading.value = false
   }
@@ -305,8 +285,17 @@ const onSubmit = async () => {
 
 // 初始化
 onMounted(async () => {
-  await categoryStore.fetchCategories()
-  await categoryStore.fetchPaymentMethods()
+  try {
+    // 获取分类
+    const cats = await categoryApi.getAll()
+    categories.value = cats.data || { expense: [], income: [] }
+    
+    // 获取支付方式
+    const pays = await categoryApi.getPaymentMethods()
+    paymentMethods.value = pays.data || []
+  } catch (error) {
+    console.error('获取数据失败:', error)
+  }
   
   // 初始化日期
   const y = dateValue.value.getFullYear()
