@@ -63,7 +63,25 @@ const onSubmit = async () => {
       router.push('/')
     }, 1000)
   } catch (error) {
-    Toast.fail('登录失败，请重试')
+    // 解析错误信息
+    let errorMsg = '登录失败，请重试'
+    
+    if (error?.data?.detail) {
+      const detail = error.data.detail
+      if (Array.isArray(detail) && detail.length > 0) {
+        errorMsg = detail[0]?.msg || detail[0]?.type || JSON.stringify(detail[0])
+      } else if (typeof detail === 'string') {
+        errorMsg = detail
+      } else {
+        errorMsg = JSON.stringify(detail)
+      }
+    } else if (error?.data?.message) {
+      errorMsg = error.data.message
+    } else if (error?.message) {
+      errorMsg = error.message
+    }
+    
+    Toast.fail(errorMsg)
     console.error('登录错误:', error)
   } finally {
     loading.value = false

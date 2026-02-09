@@ -81,7 +81,26 @@ const onSubmit = async () => {
       router.push('/login')
     }, 2000)
   } catch (error) {
-    Toast.fail('注册失败，请重试')
+    // 解析错误信息
+    let errorMsg = '注册失败，请重试'
+    
+    if (error?.data?.detail) {
+      const detail = error.data.detail
+      if (Array.isArray(detail) && detail.length > 0) {
+        // FastAPI 返回的验证错误是数组
+        errorMsg = detail[0]?.msg || detail[0]?.type || JSON.stringify(detail[0])
+      } else if (typeof detail === 'string') {
+        errorMsg = detail
+      } else {
+        errorMsg = JSON.stringify(detail)
+      }
+    } else if (error?.data?.message) {
+      errorMsg = error.data.message
+    } else if (error?.message) {
+      errorMsg = error.message
+    }
+    
+    Toast.fail(errorMsg)
     console.error('注册错误:', error)
   } finally {
     loading.value = false
