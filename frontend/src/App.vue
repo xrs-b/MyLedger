@@ -1,11 +1,12 @@
 <template>
+  <!-- 背景装饰 -->
+  <div class="bg-decoration"></div>
   <router-view />
 </template>
 
 <script setup>
 /**
  * 根组件
- * 只负责渲染路由视图
  */
 </script>
 
