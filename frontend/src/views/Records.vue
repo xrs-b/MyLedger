@@ -64,7 +64,7 @@ const formatDate = (dateStr) => {
 }
 
 const viewRecord = (record) => {
-  router.push(\`/records/\${record.id}\`)
+  router.push(`/records/${record.id}`)
 }
 
 const loadData = async () => {
