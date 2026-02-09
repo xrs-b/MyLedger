@@ -76,7 +76,7 @@ async def get_records(
     
     # 分页
     offset = (page - 1) * page_size
-    records = query.order_by(Record.date.desc()).offset(offset).limit(page_size).all()
+    records = query.order_by(Record.date.desc(), Record.id.desc()).offset(offset).limit(page_size).all()
     
     # 构建响应
     record_responses = []

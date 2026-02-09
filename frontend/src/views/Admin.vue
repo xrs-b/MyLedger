@@ -153,16 +153,16 @@ const loadData = async () => {
     const [statsRes, usersRes, recordsRes, categoriesRes, projectsRes] = await Promise.all([
       adminApi.getStats(),
       adminApi.getUsers(),
-      adminApi.getAllRecords(),
-      adminApi.getAllCategories(),
-      adminApi.getAllProjects()
+      adminApi.getRecords(1, 100),
+      adminApi.getCategories(),
+      adminApi.getProjects(null, 1, 100)
     ])
     
     stats.value = statsRes.data
     users.value = usersRes.data
-    records.value = recordsRes.data.records
+    records.value = recordsRes.data.records || recordsRes.data
     categories.value = categoriesRes.data
-    projects.value = projectsRes.data
+    projects.value = projectsRes.data.projects || projectsRes.data
   } catch (error) {
     Toast.fail('加载数据失败')
     console.error('加载数据错误:', error)

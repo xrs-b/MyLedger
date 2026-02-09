@@ -135,12 +135,12 @@ onMounted(loadData)
   font-weight: bold;
 }
 .type-icon.income {
-  background: #07c160;
-  color: #fff;
+  background: #95f7a9;
+  color: #07c160;
 }
 .type-icon.expense {
-  background: #ee0a24;
-  color: #fff;
+  background: #ffb5b5;
+  color: #ee0a24;
 }
 .record-center { flex: 1; }
 .record-category { font-size: 14px; color: #323233; margin-bottom: 4px; }

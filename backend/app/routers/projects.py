@@ -74,7 +74,7 @@ async def get_project(
     # 获取关联记录
     records = db.query(Record).filter(
         Record.project_id == project_id
-    ).order_by(Record.date.desc()).all()
+    ).order_by(Record.date.desc(), Record.id.desc()).all()
     
     return ProjectDetailResponse(
         id=project.id,
