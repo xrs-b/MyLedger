@@ -105,6 +105,7 @@ class Project(Base):
     member_count = Column(Integer, nullable=False)
     total_expense = Column(Numeric(10, 2), default=0)
     status = Column(String(20), default="ongoing")  # 'ongoing' 或 'completed'
+    description = Column(Text, default=None)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
