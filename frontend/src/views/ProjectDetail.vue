@@ -124,7 +124,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
-import { Toast, showDialog as Dialog } from 'vant'
+import { Toast, Dialog } from 'vant'
 
 const route = useRoute()
 const router = useRouter()
@@ -156,7 +156,7 @@ const goBack = () => {
 
 const completeProject = async () => {
   try {
-    await Dialog({
+    await Dialog.alert({
       title: '完成项目',
       message: '确定要完成这个项目吗？',
     })
@@ -185,9 +185,11 @@ const reopenProject = async () => {
 
 const deleteProject = async () => {
   try {
-    await Dialog({
+    await Dialog.confirm({
       title: '删除项目',
       message: '确定要删除这个项目吗？关联的消费记录也会被删除。',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
     })
     
     loading.value = true
