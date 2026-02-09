@@ -179,19 +179,30 @@ const reopenProject = async () => {
   }
 }
 
-const deleteProject = () => {
-  Dialog.confirm({
-    title: '删除项目',
-    message: '确定要删除这个项目吗？关联的消费记录也会被删除。',
-  }).then(async () => {
+const deleteProject = async () => {
+  try {
+    await Dialog.confirm({
+      title: '删除项目',
+      message: '确定要删除这个项目吗？关联的消费记录也会被删除。',
+    })
+    
+    loading.value = true
     const result = await projectStore.delete(project.value.id)
+    
     if (result.success) {
       Toast.success('删除成功')
       router.push('/projects')
     } else {
       Toast.fail(result.message)
     }
-  })
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除项目错误:', error)
+      Toast.fail(error?.data?.detail || '删除失败')
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
 // 初始化
