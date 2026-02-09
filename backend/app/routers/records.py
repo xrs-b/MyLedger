@@ -81,6 +81,28 @@ async def get_records(
     # 构建响应
     record_responses = []
     for record in records:
+        # 获取分类名称
+        category_name = None
+        if record.category_id:
+            category = db.query(Category.name).filter(Category.id == record.category_id).first()
+            if category:
+                category_name = category[0]
+        
+        # 获取二级分类名称
+        category_item_name = None
+        if record.category_item_id:
+            item = db.query(CategoryItem.name).filter(CategoryItem.id == record.category_item_id).first()
+            if item:
+                category_item_name = item[0]
+        
+        # 获取支付方式名称
+        payment_method_name = None
+        if record.payment_method_id:
+            pm = db.query(PaymentMethod.name).filter(PaymentMethod.id == record.payment_method_id).first()
+            if pm:
+                payment_method_name = pm[0]
+        
+        # 获取项目标题
         project_title = None
         if record.project_id:
             from ..models import Project
@@ -100,6 +122,9 @@ async def get_records(
             payment_method_id=record.payment_method_id,
             project_id=record.project_id,
             project_title=project_title,
+            category_name=category_name,
+            category_item_name=category_item_name,
+            payment_method_name=payment_method_name,
             created_at=record.created_at,
             updated_at=record.updated_at,
         ))

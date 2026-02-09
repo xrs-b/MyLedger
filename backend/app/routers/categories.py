@@ -247,7 +247,10 @@ async def delete_item(item_id: int, db: Session = Depends(get_db)):
 
 # ============ 支付方式 API ============
 
-
+@router.get("/payment-methods", response_model=List[PaymentMethodResponse], summary="获取支付方式")
+async def get_payment_methods(db: Session = Depends(get_db)):
+    """获取所有支付方式"""
+    return db.query(PaymentMethod).order_by(PaymentMethod.sort_order).all()
 
 
 @router.post("/payment-methods", response_model=PaymentMethodResponse, summary="创建支付方式")
