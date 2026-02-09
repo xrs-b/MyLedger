@@ -32,7 +32,7 @@
       </template>
     </van-field>
     
-    <!-- 分类选择 -->
+    <!-- 一级分类选择 -->
     <div class="form-item" @click="showCategoryPicker = true">
       <div class="form-label">分类</div>
       <div class="form-value">
@@ -45,25 +45,20 @@
     </div>
     
     <!-- 日期选择 -->
-    <van-field
-      v-model="dateDisplay"
-      readonly
-      label="日期"
-      placeholder="请选择日期"
-      @click="showDatePicker = true"
-    >
-      <template #right-icon>
+    <div class="form-item" @click="showDatePicker = true">
+      <div class="form-label">日期</div>
+      <div class="form-value">
+        <span v-if="dateDisplay">{{ dateDisplay }}</span>
+        <span v-else class="placeholder">请选择日期</span>
         <van-icon name="calendar-o" />
-      </template>
-    </van-field>
+      </div>
+    </div>
     
-    <!-- 支付方式 -->
+    <!-- 支付方式选择 -->
     <div class="form-item" @click="showPaymentPicker = true">
       <div class="form-label">支付方式</div>
       <div class="form-value">
-        <span v-if="paymentMethodName">
-          {{ paymentMethodName }}
-        </span>
+        <span v-if="paymentMethodName">{{ paymentMethodName }}</span>
         <span v-else class="placeholder">请选择支付方式</span>
         <van-icon name="arrow" />
       </div>
@@ -91,31 +86,42 @@
       保存
     </van-button>
     
-    <!-- 分类选择器 -->
-    <van-popup v-model:show="showCategoryPicker" position="bottom" :style="{ height: '50%' }">
+    <!-- 一级分类选择器 -->
+    <van-popup v-model:show="showCategoryPicker" position="bottom">
       <van-picker
-        :columns="categoryColumns"
-        title="选择分类"
-        @confirm="onCategoryConfirm"
+        :columns="firstLevelColumns"
+        title="选择一级分类"
+        @confirm="onFirstLevelConfirm"
         @cancel="showCategoryPicker = false"
+      />
+    </van-popup>
+    
+    <!-- 二级分类选择器 -->
+    <van-popup v-model:show="showSubCategoryPicker" position="bottom">
+      <van-picker
+        :columns="secondLevelColumns"
+        title="选择二级分类"
+        @confirm="onSecondLevelConfirm"
+        @cancel="showSubCategoryPicker = false"
       />
     </van-popup>
     
     <!-- 日期选择器 -->
     <van-popup v-model:show="showDatePicker" position="bottom">
-      <van-datetime-picker
-        v-model="dateValue"
-        type="date"
+      <van-date-picker
+        :value="dateValue"
         title="选择日期"
+        :min-date="new Date(2020, 0, 1)"
+        :max-date="new Date()"
         @confirm="onDateConfirm"
         @cancel="showDatePicker = false"
       />
     </van-popup>
     
-    <!-- 支付方式选择 -->
+    <!-- 支付方式选择器 -->
     <van-popup v-model:show="showPaymentPicker" position="bottom">
       <van-picker
-        :columns="paymentMethodOptions"
+        :columns="paymentMethodColumns"
         title="选择支付方式"
         @confirm="onPaymentConfirm"
         @cancel="showPaymentPicker = false"
@@ -137,48 +143,51 @@ const loading = ref(false)
 const categories = ref({ expense: [], income: [] })
 const paymentMethods = ref([])
 const amountDisplay = ref('')
+const dateValue = ref([2026, 2, 9])
 const dateDisplay = ref('')
-const dateValue = ref(new Date())
 const showCategoryPicker = ref(false)
+const showSubCategoryPicker = ref(false)
 const showDatePicker = ref(false)
 const showPaymentPicker = ref(false)
 const paymentMethodName = ref('')
 const selectedCategoryName = ref('')
+const selectedFirstLevel = ref(null)
 
 const form = reactive({
   type: 'expense',
   category_id: null,
   category_item_id: null,
   amount: 0,
-  date: new Date(),
   remark: '',
   payment_method_id: null,
   project_id: route.query.project_id ? parseInt(route.query.project_id) : null
 })
 
-// 分类选项（扁平化）
-const categoryColumns = computed(() => {
+// 一级分类选项
+const firstLevelColumns = computed(() => {
   const type = form.type || 'expense'
   const typeCategories = categories.value[type] || []
-  const options = []
-  
-  typeCategories.forEach(cat => {
-    if (cat.items) {
-      cat.items.forEach(item => {
-        options.push({
-          text: `${cat.name} - ${item.name}`,
-          value: item.id,
-          categoryId: cat.id
-        })
-      })
-    }
-  })
-  
-  return options
+  return typeCategories.map(c => ({
+    text: c.name,
+    value: c.id
+  }))
+})
+
+// 二级分类选项
+const secondLevelColumns = computed(() => {
+  if (!selectedFirstLevel.value) return []
+  const type = form.type || 'expense'
+  const typeCategories = categories.value[type] || []
+  const category = typeCategories.find(c => c.id === selectedFirstLevel.value)
+  if (!category || !category.items) return []
+  return category.items.map(item => ({
+    text: item.name,
+    value: item.id
+  }))
 })
 
 // 支付方式选项
-const paymentMethodOptions = computed(() => {
+const paymentMethodColumns = computed(() => {
   return (paymentMethods.value || []).map(pm => ({
     text: pm.name,
     value: pm.id
@@ -187,15 +196,13 @@ const paymentMethodOptions = computed(() => {
 
 // 是否可以提交
 const canSubmit = computed(() => {
-  return form.amount > 0 && form.category_id
+  return form.amount > 0 && form.category_id && form.category_item_id
 })
 
 // 显示提示
 const showToast = (msg) => {
   if (proxy && proxy.$toast) {
     proxy.$toast(msg)
-  } else {
-    
   }
 }
 
@@ -214,27 +221,46 @@ const onAmountInput = (e) => {
   form.amount = value ? parseFloat(value) : 0
 }
 
-// 分类确认
-const onCategoryConfirm = (e) => {
+// 一级分类确认
+const onFirstLevelConfirm = (e) => {
   if (e.selectedValues && e.selectedValues.length > 0) {
-    const idx = e.selectedValues[0]
-    const selected = categoryColumns.value[idx]
-    if (selected) {
-      form.category_id = selected.categoryId
-      form.category_item_id = selected.value
-      selectedCategoryName.value = selected.text
+    selectedFirstLevel.value = e.selectedValues[0]
+    const type = form.type || 'expense'
+    const typeCategories = categories.value[type] || []
+    const category = typeCategories.find(c => c.id === selectedFirstLevel.value)
+    if (category) {
+      form.category_id = category.id
+      form.category_item_id = null
+      selectedCategoryName.value = category.name
+      // 显示二级分类选择器
+      showCategoryPicker.value = false
+      showSubCategoryPicker.value = true
     }
   }
-  showCategoryPicker.value = false
+}
+
+// 二级分类确认
+const onSecondLevelConfirm = (e) => {
+  if (e.selectedValues && e.selectedValues.length > 0) {
+    form.category_item_id = e.selectedValues[0]
+    const type = form.type || 'expense'
+    const typeCategories = categories.value[type] || []
+    const category = typeCategories.find(c => c.id === form.category_id)
+    const item = category?.items?.find(i => i.id === form.category_item_id)
+    if (category && item) {
+      selectedCategoryName.value = `${category.name} - ${item.name}`
+    }
+  }
+  showSubCategoryPicker.value = false
 }
 
 // 日期确认
-const onDateConfirm = () => {
-  form.date = dateValue.value
-  const y = dateValue.value.getFullYear()
-  const m = String(dateValue.value.getMonth() + 1).padStart(2, '0')
-  const d = String(dateValue.value.getDate()).padStart(2, '0')
-  dateDisplay.value = `${y}-${m}-${d}`
+const onDateConfirm = (e) => {
+  const values = e.selectedValues
+  if (values && values.length === 3) {
+    dateValue.value = values
+    dateDisplay.value = `${values[0]}-${String(values[1]).padStart(2, '0')}-${String(values[2]).padStart(2, '0')}`
+  }
   showDatePicker.value = false
 }
 
@@ -242,8 +268,8 @@ const onDateConfirm = () => {
 const onPaymentConfirm = (e) => {
   if (e.selectedValues && e.selectedValues.length > 0) {
     form.payment_method_id = e.selectedValues[0]
-    const selected = paymentMethodOptions.value.find(p => p.value === form.payment_method_id)
-    paymentMethodName.value = selected?.text || ''
+    const pm = paymentMethods.value.find(p => p.id === form.payment_method_id)
+    paymentMethodName.value = pm?.name || ''
   }
   showPaymentPicker.value = false
 }
@@ -263,7 +289,7 @@ const onSubmit = async () => {
       category_id: form.category_id,
       category_item_id: form.category_item_id,
       amount: form.amount,
-      date: form.date.toISOString().split('T')[0],
+      date: dateDisplay.value,
       remark: form.remark || null,
       payment_method_id: form.payment_method_id || null,
       project_id: form.project_id || null
@@ -293,15 +319,17 @@ onMounted(async () => {
     // 获取支付方式
     const pays = await categoryApi.getPaymentMethods()
     paymentMethods.value = pays.data || []
+    
+    console.log('分类数据:', categories.value)
+    console.log('支付方式:', paymentMethods.value)
   } catch (error) {
     console.error('获取数据失败:', error)
   }
   
   // 初始化日期
-  const y = dateValue.value.getFullYear()
-  const m = String(dateValue.value.getMonth() + 1).padStart(2, '0')
-  const d = String(dateValue.value.getDate()).padStart(2, '0')
-  dateDisplay.value = `${y}-${m}-${d}`
+  const now = new Date()
+  dateValue.value = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+  dateDisplay.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 })
 </script>
 
