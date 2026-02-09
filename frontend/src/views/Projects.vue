@@ -60,7 +60,7 @@ const formatDate = (dateStr) => {
 const getAvgExpense = (p) => p.member_count > 0 ? p.total_expense / p.member_count : 0
 const getExpenseRate = (p) => p.budget > 0 ? Math.min(100, (Number(p.total_expense) / Number(p.budget)) * 100) : 0
 
-const viewProject = (project) => router.push(\`/projects/\${project.id}\`)
+const viewProject = (project) => router.push(`/projects/${project.id}`)
 const loadProjects = async () => {
   loading.value = true
   try {
