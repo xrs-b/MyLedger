@@ -155,10 +155,12 @@ const goBack = () => {
 }
 
 const completeProject = async () => {
-  Dialog.confirm({
-    title: '完成项目',
-    message: '确定要完成这个项目吗？',
-  }).then(async () => {
+  try {
+    await Dialog.confirm({
+      title: '完成项目',
+      message: '确定要完成这个项目吗？',
+    })
+    
     const result = await projectStore.complete(project.value.id)
     if (result.success) {
       Toast.success('项目已完成')
@@ -166,7 +168,9 @@ const completeProject = async () => {
     } else {
       Toast.fail(result.message)
     }
-  })
+  } catch (error) {
+    // 用户取消，不做任何处理
+  }
 }
 
 const reopenProject = async () => {
@@ -198,7 +202,6 @@ const deleteProject = async () => {
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除项目错误:', error)
-      Toast.fail(error?.data?.detail || '删除失败')
     }
   } finally {
     loading.value = false
