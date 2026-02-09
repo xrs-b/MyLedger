@@ -143,7 +143,7 @@ const loading = ref(false)
 const categories = ref({ expense: [], income: [] })
 const paymentMethods = ref([])
 const amountDisplay = ref('')
-const dateValue = ref([2026, 2, 9])
+const dateValue = ref(null)
 const dateDisplay = ref('')
 const showCategoryPicker = ref(false)
 const showSubCategoryPicker = ref(false)
@@ -258,7 +258,8 @@ const onSecondLevelConfirm = (e) => {
 const onDateConfirm = (e) => {
   const values = e.selectedValues
   if (values && values.length === 3) {
-    dateValue.value = values
+    const date = new Date(values[0], values[1] - 1, values[2])
+    dateValue.value = date
     dateDisplay.value = `${values[0]}-${String(values[1]).padStart(2, '0')}-${String(values[2]).padStart(2, '0')}`
   }
   showDatePicker.value = false
@@ -328,7 +329,7 @@ onMounted(async () => {
   
   // 初始化日期
   const now = new Date()
-  dateValue.value = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+  dateValue.value = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   dateDisplay.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 })
 </script>
