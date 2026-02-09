@@ -1,5 +1,25 @@
 <template>
   <div class="page-container" v-loading="loading">
+    
+    <!-- 删除确认对话框 -->
+    <van-dialog
+      v-model:show="showDeleteDialog"
+      title="删除项目"
+      message="确定要删除这个项目吗？关联的消费记录也会被删除。"
+      show-cancel-button
+      confirm-button-text="删除"
+      @confirm="confirmDelete"
+    />
+    
+    <!-- 完成确认对话框 -->
+    <van-dialog
+      v-model:show="showCompleteDialog"
+      title="完成项目"
+      message="确定要完成这个项目吗？"
+      show-cancel-button
+      @confirm="confirmComplete"
+    />
+    
     <template v-if="project">
       <!-- 返回按钮 -->
       <div class="back-bar" @click="goBack">
@@ -59,7 +79,7 @@
             v-if="project.status === 'ongoing'"
             type="success" 
             size="small"
-            @click="completeProject"
+            @click="showCompleteDialog = true"
           >
             完成项目
           </van-button>
@@ -75,7 +95,7 @@
             type="danger" 
             size="small"
             plain
-            @click="deleteProject"
+            @click="showDeleteDialog = true"
           >
             删除项目
           </van-button>
@@ -124,7 +144,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
-import { Toast, Dialog } from 'vant'
+import { Toast } from 'vant'
 
 const route = useRoute()
 const router = useRouter()
@@ -132,6 +152,8 @@ const projectStore = useProjectStore()
 
 const loading = ref(false)
 const project = ref(null)
+const showDeleteDialog = ref(false)
+const showCompleteDialog = ref(false)
 
 const formatAmount = (amount) => {
   return Number(amount).toLocaleString('zh-CN', {
@@ -155,22 +177,7 @@ const goBack = () => {
 }
 
 const completeProject = async () => {
-  try {
-    await Dialog.alert({
-      title: '完成项目',
-      message: '确定要完成这个项目吗？',
-    })
-    
-    const result = await projectStore.complete(project.value.id)
-    if (result.success) {
-      Toast.success('项目已完成')
-      project.value = projectStore.currentProject
-    } else {
-      Toast.fail(result.message)
-    }
-  } catch (error) {
-    // 用户取消，不做任何处理
-  }
+  // 由对话框 confirm 触发
 }
 
 const reopenProject = async () => {
@@ -184,30 +191,32 @@ const reopenProject = async () => {
 }
 
 const deleteProject = async () => {
-  try {
-    await Dialog.confirm({
-      title: '删除项目',
-      message: '确定要删除这个项目吗？关联的消费记录也会被删除。',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-    })
-    
-    loading.value = true
-    const result = await projectStore.delete(project.value.id)
-    
-    if (result.success) {
-      Toast.success('删除成功')
-      router.push('/projects')
-    } else {
-      Toast.fail(result.message)
-    }
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除项目错误:', error)
-    }
-  } finally {
-    loading.value = false
+  // 由对话框 confirm 触发
+}
+
+const confirmComplete = async () => {
+  const result = await projectStore.complete(project.value.id)
+  if (result.success) {
+    Toast.success('项目已完成')
+    project.value = projectStore.currentProject
+  } else {
+    Toast.fail(result.message)
   }
+  showCompleteDialog.value = false
+}
+
+const confirmDelete = async () => {
+  loading.value = true
+  const result = await projectStore.delete(project.value.id)
+  
+  if (result.success) {
+    Toast.success('删除成功')
+    router.push('/projects')
+  } else {
+    Toast.fail(result.message)
+  }
+  loading.value = false
+  showDeleteDialog.value = false
 }
 
 // 初始化
