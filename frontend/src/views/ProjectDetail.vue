@@ -156,7 +156,10 @@ const goBack = () => {
 
 const completeProject = async () => {
   try {
-    await Dialog.confirm('确定要完成这个项目吗？', '完成项目')
+    await Dialog({
+      title: '完成项目',
+      message: '确定要完成这个项目吗？',
+    })
     
     const result = await projectStore.complete(project.value.id)
     if (result.success) {
@@ -182,7 +185,10 @@ const reopenProject = async () => {
 
 const deleteProject = async () => {
   try {
-    await Dialog.confirm('确定要删除这个项目吗？关联的消费记录也会被删除。', '删除项目')
+    await Dialog({
+      title: '删除项目',
+      message: '确定要删除这个项目吗？关联的消费记录也会被删除。',
+    })
     
     loading.value = true
     const result = await projectStore.delete(project.value.id)
