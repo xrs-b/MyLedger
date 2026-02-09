@@ -2,8 +2,7 @@
  * 记账状态管理
  */
 
-import { defineStore } from 'pinia'
-import recordApi from '@/api/record'
+import api from '@/api/record'
 
 export const useRecordStore = defineStore('record', {
   state: () => ({
@@ -60,13 +59,13 @@ export const useRecordStore = defineStore('record', {
           }
         })
         
-        const response = await recordApi.getList(params)
+        const response = await api.getList(params)
         const { records, total, page, page_size, total_pages } = response.data
         
         this.pagination = { page, pageSize: page_size, total, totalPages: total_pages }
         
         if (append) {
-          this.records = [...this.records, ...records]
+          this.records = [...this.records, ...(records || [])]
         } else {
           this.records = records || []
         }
@@ -97,7 +96,7 @@ export const useRecordStore = defineStore('record', {
       this.loading = true
       
       try {
-        const response = await recordApi.getById(id)
+        const response = await api.getById(id)
         this.currentRecord = response.data
         return { success: true, data: response.data }
       } catch (error) {
@@ -112,7 +111,7 @@ export const useRecordStore = defineStore('record', {
       this.loading = true
       
       try {
-        await recordApi.create(data)
+        await api.create(data)
         await this.refresh()
         return { success: true }
       } catch (error) {
@@ -127,7 +126,7 @@ export const useRecordStore = defineStore('record', {
       this.loading = true
       
       try {
-        await recordApi.update(id, data)
+        await api.update(id, data)
         await this.refresh()
         return { success: true }
       } catch (error) {
@@ -142,7 +141,7 @@ export const useRecordStore = defineStore('record', {
       this.loading = true
       
       try {
-        await recordApi.delete(id)
+        await api.delete(id)
         await this.refresh()
         return { success: true }
       } catch (error) {
@@ -155,7 +154,7 @@ export const useRecordStore = defineStore('record', {
 
     async fetchStats(params = {}) {
       try {
-        const response = await recordApi.getStats(params)
+        const response = await api.getStats(params)
         this.stats = response.data
         return response.data
       } catch (error) {

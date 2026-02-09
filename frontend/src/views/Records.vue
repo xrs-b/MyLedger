@@ -15,7 +15,7 @@
     </div>
     
     <!-- 记账列表 -->
-    <div class="records-list" v-loading="loading">
+    <div class="records-list" v-if="!loading">
       <div 
         v-for="record in records" 
         :key="record.id"
@@ -23,11 +23,11 @@
         @click="viewRecord(record)"
       >
         <div class="record-left">
-          <van-icon :name="getCategoryIcon(record)" size="32" />
+          <van-icon :name="record.type === 'income' ? 'arrow-up' : 'arrow-down'" size="32" />
         </div>
         <div class="record-center">
           <div class="record-category">
-            {{ record.category_name || '未知分类' }} - {{ record.category_item_name || '未知' }}
+            {{ record.category_name || '未知分类' }}
           </div>
           <div class="record-date">
             {{ formatDate(record.date) }}
@@ -35,9 +35,6 @@
           <div class="record-project" v-if="record.project_title">
             <van-icon name="cluster-o" size="12" />
             {{ record.project_title }}
-          </div>
-          <div class="record-remark" v-if="record.remark">
-            {{ record.remark }}
           </div>
         </div>
         <div class="record-right">
@@ -48,12 +45,11 @@
       </div>
       
       <!-- 空状态 -->
-      <van-empty v-if="!loading && records.length === 0" description="暂无记账记录" />
-      
-      <!-- 加载更多 -->
-      <div class="load-more" v-if="hasMore" @click="loadMore">
-        加载更多
-      </div>
+      <van-empty v-if="records.length === 0" description="暂无记账记录" />
+    </div>
+    
+    <div v-else class="loading">
+      加载中...
     </div>
     
     <!-- 记一笔按钮 -->
@@ -65,49 +61,50 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRecordStore } from '@/stores/record'
-import { storeToRefs } from 'pinia'
-import { Toast } from 'vant'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '@/api/record'
 
 const router = useRouter()
-const recordStore = useRecordStore()
-const { records, stats, pagination, loading, hasMore } = storeToRefs(recordStore)
+const records = ref([])
+const stats = ref(null)
+const loading = ref(false)
 
-// 格式化金额
 const formatAmount = (amount) => {
-  return Number(amount).toLocaleString('zh-CN', {
+  return Number(amount || 0).toLocaleString('zh-CN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })
 }
 
-// 格式化日期
 const formatDate = (dateStr) => {
   const date = new Date(dateStr)
   return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
-// 获取分类图标（简化）
-const getCategoryIcon = (record) => {
-  return record.type === 'income' ? 'arrow-up' : 'arrow-down'
-}
-
-// 查看详情
 const viewRecord = (record) => {
   router.push(`/records/${record.id}`)
 }
 
-// 加载更多
-const loadMore = () => {
-  recordStore.loadMore()
+const loadData = async () => {
+  loading.value = true
+  
+  try {
+    // 获取记账列表
+    const recordsRes = await api.getList({ page: 1, page_size: 50 })
+    records.value = recordsRes.data.records || []
+    
+    // 获取统计
+    stats.value = await api.getStats({})
+  } catch (error) {
+    console.error('获取数据失败:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
-// 初始化
-onMounted(async () => {
-  await recordStore.fetchRecords()
-  await recordStore.fetchStats()
+onMounted(() => {
+  loadData()
 })
 </script>
 
@@ -185,15 +182,6 @@ onMounted(async () => {
   margin-top: 4px;
 }
 
-.record-remark {
-  font-size: 12px;
-  color: #969799;
-  margin-top: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .record-right {
   text-align: right;
 }
@@ -211,11 +199,10 @@ onMounted(async () => {
   color: #ee0a24;
 }
 
-.load-more {
+.loading {
   text-align: center;
-  padding: 16px;
-  color: #1989fa;
-  cursor: pointer;
+  padding: 40px;
+  color: #969799;
 }
 
 .add-btn {
