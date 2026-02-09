@@ -3,9 +3,7 @@
  * 多维度统计接口
  */
 
-import axios from 'axios'
-
-const API_URL = '/api/v1/statistics'
+import api from './index'
 
 const statisticsApi = {
   /**
@@ -13,7 +11,7 @@ const statisticsApi = {
    * @param {Object} params - 筛选参数
    */
   async getSummary(params = {}) {
-    return axios.get(`${API_URL}/summary`, { params })
+    return api.get('/statistics/summary', { params })
   },
 
   /**
@@ -21,7 +19,7 @@ const statisticsApi = {
    * @param {Object} params - 筛选参数
    */
   async getByCategory(params = {}) {
-    return axios.get(`${API_URL}/by-category`, { params })
+    return api.get('/statistics/by-category', { params })
   },
 
   /**
@@ -29,7 +27,7 @@ const statisticsApi = {
    * @param {Object} params - 筛选参数
    */
   async getByDay(params = {}) {
-    return axios.get(`${API_URL}/by-day`, { params })
+    return api.get('/statistics/by-day', { params })
   },
 
   /**
@@ -37,7 +35,7 @@ const statisticsApi = {
    * @param {Object} params - 筛选参数
    */
   async getByProject(params = {}) {
-    return axios.get(`${API_URL}/by-project`, { params })
+    return api.get('/statistics/by-project', { params })
   },
 
   /**
@@ -45,7 +43,7 @@ const statisticsApi = {
    * @param {string} period - 周期 (day/week/month)
    */
   async getTrend(period = 'month') {
-    return axios.get(`${API_URL}/trend`, { params: { period } })
+    return api.get('/statistics/trend', { params: { period } })
   }
 }
 

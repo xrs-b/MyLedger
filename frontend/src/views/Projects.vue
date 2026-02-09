@@ -50,10 +50,10 @@
       <van-empty v-if="!loading && projects.length === 0" description="暂无项目" />
     </div>
     
-    <!-- 新建项目按钮 -->
+    <!-- 新建按钮 -->
     <router-link to="/projects/add" class="add-btn">
       <van-icon name="plus" size="24" />
-      新建项目
+      新建
     </router-link>
   </div>
 </template>

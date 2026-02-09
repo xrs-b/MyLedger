@@ -17,13 +17,8 @@ export const useAuthStore = defineStore('auth', {
 
   // ============ Getter ============
   getters: {
-    // 是否已登录
     isLoggedIn: (state) => !!state.token,
-    
-    // 是否是管理员
     isAdmin: (state) => state.user?.is_admin || false,
-    
-    // 获取 Token
     getToken: (state) => state.token
   },
 
@@ -31,27 +26,23 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     /**
      * 用户登录
-     * @param {string} username - 账号名
-     * @param {string} password - 密码
      */
     async login(username, password) {
       this.loading = true
       this.error = null
       
       try {
-        const response = await authApi.login({ username, password })
+        const response = await authApi.login(username, password)
         const { access_token, user } = response.data
         
-        // 保存 Token
         this.token = access_token
         localStorage.setItem('token', access_token)
         this.user = user
         
         return { success: true, user }
       } catch (error) {
-        const message = error.response?.data?.detail || '登录失败'
-        this.error = message
-        return { success: false, message }
+        this.error = error.data?.detail || '登录失败'
+        return { success: false, message: this.error }
       } finally {
         this.loading = false
       }
@@ -59,57 +50,46 @@ export const useAuthStore = defineStore('auth', {
 
     /**
      * 用户注册
-     * @param {string} username - 账号名
-     * @param {string} password - 密码
-     * @param {string} inviteCode - 邀请码
      */
     async register(username, password, inviteCode) {
       this.loading = true
       this.error = null
       
       try {
-        const response = await authApi.register({
-          username,
-          password,
-          invite_code: inviteCode
-        })
-        
-        const { is_admin } = response.data
-        return { success: true, is_admin }
+        await authApi.register(username, password, inviteCode)
+        return { success: true }
       } catch (error) {
-        const message = error.response?.data?.detail || '注册失败'
-        this.error = message
-        return { success: false, message }
+        this.error = error.data?.detail || '注册失败'
+        return { success: false, message: this.error }
       } finally {
         this.loading = false
       }
     },
 
     /**
-     * 获取当前用户信息
+     * 加载用户信息
      */
-    async fetchUser() {
+    async loadUser() {
       if (!this.token) return
       
-      this.loading = true
       try {
         const response = await authApi.me()
         this.user = response.data
+        return { success: true, user: this.user }
       } catch (error) {
-        // Token 无效，清除状态
         this.logout()
-      } finally {
-        this.loading = false
+        return { success: false }
       }
     },
 
     /**
-     * 退出登录
+     * 用户退出
      */
     logout() {
       this.token = null
       this.user = null
       localStorage.removeItem('token')
+      localStorage.removeItem('user')
     },
 
     /**

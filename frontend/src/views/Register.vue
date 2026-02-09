@@ -42,10 +42,6 @@
       </van-button>
     </van-form>
     
-    <div class="tips">
-      <p>邀请码: <strong>vip1123</strong></p>
-    </div>
-    
     <router-link to="/login" class="link">
       已有账号？去登录
     </router-link>
@@ -73,27 +69,23 @@ const onSubmit = async () => {
   loading.value = true
   
   try {
-    const result = await authStore.register(
+    await authStore.register(
       form.username,
       form.password,
       form.inviteCode
     )
     
-    if (result.success) {
-      Toast.success({
-        message: '注册成功！',
-        duration: 1500
-      })
-      
-      // 2秒后跳转登录页
-      setTimeout(() => {
-        router.push('/login')
-      }, 2000)
-    } else {
-      Toast.fail(result.message)
-    }
+    Toast.success({
+      message: '注册成功！',
+      duration: 1500
+    })
+    
+    // 2秒后跳转登录页
+    setTimeout(() => {
+      router.push('/login')
+    }, 2000)
   } catch (error) {
-    Toast.fail('注册失败，请重试')
+    Toast.fail(error.response?.data?.detail || '注册失败，请重试')
     console.error('注册错误:', error)
   } finally {
     loading.value = false
@@ -104,19 +96,6 @@ const onSubmit = async () => {
 <style scoped>
 .submit-btn {
   margin-top: 24px;
-}
-
-.tips {
-  margin-top: 16px;
-  padding: 12px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  text-align: center;
-  color: #666;
-}
-
-.tips strong {
-  color: #1989fa;
 }
 
 .link {

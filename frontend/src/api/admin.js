@@ -1,96 +1,91 @@
 /**
  * 管理 API
- * 管理员专用 API
  */
 
-import axios from 'axios'
-
-const API_URL = '/api/v1/admin'
+import api from './index'
 
 const adminApi = {
   // 用户管理
-  async getUsers(params = {}) {
-    return axios.get(`${API_URL}/users`, { params })
+  async getUsers(page = 1, pageSize = 20) {
+    return api.get('/admin/users', { params: { page, page_size: pageSize } })
   },
-  
+
   async getUserCount() {
-    return axios.get(`${API_URL}/users/count`)
+    return api.get('/admin/users/count')
   },
-  
+
   async updateUser(id, data) {
-    return axios.put(`${API_URL}/users/${id}`, data)
+    return api.put(`/admin/users/${id}`, data)
   },
-  
+
   async deleteUser(id) {
-    return axios.delete(`${API_URL}/users/${id}`)
+    return api.delete(`/admin/users/${id}`)
   },
-  
+
   // 记录管理
-  async getAllRecords(params = {}) {
-    return axios.get(`${API_URL}/records`, { params })
+  async getRecords(page = 1, pageSize = 20) {
+    return api.get('/admin/records', { params: { page, page_size: pageSize } })
   },
-  
+
   async deleteRecord(id) {
-    return axios.delete(`${API_URL}/records/${id}`)
+    return api.delete(`/admin/records/${id}`)
   },
-  
+
   // 分类管理
-  async getAllCategories(type = null) {
-    const params = type ? { type } : {}
-    return axios.get(`${API_URL}/categories`, { params })
+  async getCategories(type = null) {
+    return api.get('/admin/categories', { params: { type } })
   },
-  
+
   async createCategory(data) {
-    return axios.post(`${API_URL}/categories`, data)
+    return api.post('/admin/categories', data)
   },
-  
+
   async updateCategory(id, data) {
-    return axios.put(`${API_URL}/categories/${id}`, data)
+    return api.put(`/admin/categories/${id}`, data)
   },
-  
+
   async deleteCategory(id) {
-    return axios.delete(`${API_URL}/categories/${id}`)
+    return api.delete(`/admin/categories/${id}`)
   },
-  
+
   // 二级分类管理
-  async getAllItems(categoryId = null) {
-    const params = categoryId ? { category_id: categoryId } : {}
-    return axios.get(`${API_URL}/category-items`, { params })
+  async getCategoryItems(categoryId = null) {
+    return api.get('/admin/category-items', { params: { category_id: categoryId } })
   },
-  
+
   async createCategoryItem(data) {
-    return axios.post(`${API_URL}/category-items`, data)
+    return api.post('/admin/category-items', data)
   },
-  
+
   async deleteCategoryItem(id) {
-    return axios.delete(`${API_URL}/category-items/${id}`)
+    return api.delete(`/admin/category-items/${id}`)
   },
-  
+
   // 支付方式管理
-  async getAllPaymentMethods() {
-    return axios.get(`${API_URL}/payment-methods`)
+  async getPaymentMethods() {
+    return api.get('/admin/payment-methods')
   },
-  
+
   async createPaymentMethod(data) {
-    return axios.post(`${API_URL}/payment-methods`, data)
+    return api.post('/admin/payment-methods', data)
   },
-  
+
   async deletePaymentMethod(id) {
-    return axios.delete(`${API_URL}/payment-methods/${id}`)
+    return api.delete(`/admin/payment-methods/${id}`)
   },
-  
+
   // 项目管理
-  async getAllProjects(params = {}) {
-    return axios.get(`${API_URL}/projects`, { params })
+  async getProjects(status = null, page = 1, pageSize = 20) {
+    return api.get('/admin/projects', { params: { status, page, page_size: pageSize } })
   },
-  
+
   async deleteProject(id) {
-    return axios.delete(`${API_URL}/projects/${id}`)
+    return api.delete(`/admin/projects/${id}`)
   },
-  
+
   // 统计数据
   async getStats() {
-    return axios.get(`${API_URL}/stats`)
+    return api.get('/admin/stats')
   }
 }
 

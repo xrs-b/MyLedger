@@ -55,23 +55,19 @@ const onSubmit = async () => {
   loading.value = true
   
   try {
-    const result = await authStore.login(form.username, form.password)
+    await authStore.login(form.username, form.password)
     
-    if (result.success) {
-      Toast.success({
-        message: '登录成功！',
-        duration: 1000
-      })
-      
-      // 跳转首页
-      setTimeout(() => {
-        router.push('/')
-      }, 1000)
-    } else {
-      Toast.fail(result.message)
-    }
+    Toast.success({
+      message: '登录成功！',
+      duration: 1000
+    })
+    
+    // 跳转到首页
+    setTimeout(() => {
+      router.push('/')
+    }, 1000)
   } catch (error) {
-    Toast.fail('登录失败，请重试')
+    Toast.fail(error.response?.data?.detail || '登录失败，请重试')
     console.error('登录错误:', error)
   } finally {
     loading.value = false
