@@ -30,5 +30,5 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
-    volumes:
-      - ./frontend/dist:/usr/share/nginx/html:ro
+    # volumes:
+    #   - ./frontend/dist:/usr/share/nginx/html:ro
