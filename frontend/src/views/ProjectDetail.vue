@@ -141,14 +141,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
-import { Toast } from 'vant'
+
 
 const route = useRoute()
 const router = useRouter()
 const projectStore = useProjectStore()
+
+const { proxy } = getCurrentInstance()
+const showToast = (msg) => {
+  if (proxy && proxy.$toast) {
+    proxy.$toast(msg)
+  }
+}
 
 const loading = ref(false)
 const project = ref(null)
@@ -183,7 +190,7 @@ const completeProject = async () => {
 const reopenProject = async () => {
   try {
     await projectStore.reopen(project.value.id)
-    Toast.success('项目已重新打开')
+    showToast('项目已重新打开')
     
     // 重新获取项目数据
     const result = await projectStore.fetchProject(route.params.id)
@@ -192,7 +199,7 @@ const reopenProject = async () => {
     }
   } catch (error) {
     console.error('重新打开项目错误:', error)
-    Toast.fail(error?.message || '操作失败')
+    showToast(error?.message || '操作失败')
   }
 }
 
@@ -203,7 +210,7 @@ const deleteProject = async () => {
 const confirmComplete = async () => {
   try {
     await projectStore.complete(project.value.id)
-    Toast.success('项目已完成')
+    showToast('项目已完成')
     
     // 重新获取项目数据
     const result = await projectStore.fetchProject(route.params.id)
@@ -212,7 +219,7 @@ const confirmComplete = async () => {
     }
   } catch (error) {
     console.error('完成项目错误:', error)
-    Toast.fail(error?.message || '操作失败')
+    showToast(error?.message || '操作失败')
   }
   showCompleteDialog.value = false
 }
@@ -223,18 +230,18 @@ const confirmDelete = async () => {
   try {
     const result = await projectStore.delete(project.value.id)
     if (result && result.success) {
-      Toast.success('删除成功')
+      showToast('删除成功')
       showDeleteDialog.value = false
       setTimeout(() => {
         router.push('/projects')
       }, 500)
     } else {
-      Toast.fail(result?.message || '删除失败')
+      showToast(result?.message || '删除失败')
       showDeleteDialog.value = false
     }
   } catch (error) {
     console.error('删除项目错误:', error)
-    Toast.fail(String(error?.message || error?.data?.detail || '删除失败'))
+    showToast(String(error?.message || error?.data?.detail || '删除失败'))
     showDeleteDialog.value = false
   }
   loading.value = false
@@ -247,7 +254,7 @@ onMounted(async () => {
   if (result.success) {
     project.value = result.data
   } else {
-    Toast.fail(result.message)
+    showToast(result.message)
     router.push('/projects')
   }
   loading.value = false

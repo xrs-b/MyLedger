@@ -125,12 +125,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, getCurrentInstance } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import adminApi from '@/api/admin'
-import { Toast, showDialog as Dialog } from 'vant'
+import { showDialog as Dialog } from 'vant'
 
 const authStore = useAuthStore()
+
+const { proxy } = getCurrentInstance()
+const showToast = (msg) => {
+  if (proxy && proxy.$toast) {
+    proxy.$toast(msg)
+  }
+}
 
 const loading = ref(false)
 const activeTab = ref('users')
@@ -165,7 +172,7 @@ const loadData = async () => {
     if (projectsRes?.data) projects.value = projectsRes.data.projects || projectsRes.data
   } catch (error) {
     console.error('加载数据错误:', error)
-    Toast.fail(error?.message || '加载数据失败')
+    showToast(error?.message || '加载数据失败')
   } finally {
     loading.value = false
   }
@@ -176,12 +183,12 @@ const deleteUser = async (id) => {
     await MessageBox.confirm('确定要删除这个用户吗？', '确认删除')
     
     await adminApi.deleteUser(id)
-    Toast.success('删除成功')
+    showToast('删除成功')
     loadData()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除用户错误:', error)
-      Toast.fail(error?.data?.detail || error?.message || '删除失败')
+      showToast(error?.data?.detail || error?.message || '删除失败')
     }
   }
 }
@@ -191,12 +198,12 @@ const deleteRecord = async (id) => {
     await MessageBox.confirm('确定要删除这条记录吗？', '确认删除')
     
     await adminApi.deleteRecord(id)
-    Toast.success('删除成功')
+    showToast('删除成功')
     loadData()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除记录错误:', error)
-      Toast.fail(error?.data?.detail || error?.message || '删除失败')
+      showToast(error?.data?.detail || error?.message || '删除失败')
     }
   }
 }
@@ -206,12 +213,12 @@ const deleteCategory = async (id) => {
     await MessageBox.confirm('确定要删除这个分类吗？二级分类也会被删除。', '确认删除')
     
     await adminApi.deleteCategory(id)
-    Toast.success('删除成功')
+    showToast('删除成功')
     loadData()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除分类错误:', error)
-      Toast.fail(error?.data?.detail || error?.message || '删除失败')
+      showToast(error?.data?.detail || error?.message || '删除失败')
     }
   }
 }
@@ -221,12 +228,12 @@ const deleteProject = async (id) => {
     await MessageBox.confirm('确定要删除这个项目吗？关联的记录也会被删除。', '确认删除')
     
     await adminApi.deleteProject(id)
-    Toast.success('删除成功')
+    showToast('删除成功')
     loadData()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除项目错误:', error)
-      Toast.fail(error?.data?.detail || error?.message || '删除失败')
+      showToast(error?.data?.detail || error?.message || '删除失败')
     }
   }
 }

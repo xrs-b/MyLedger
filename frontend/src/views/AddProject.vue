@@ -104,10 +104,17 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
-import { Toast } from 'vant'
+
 
 const router = useRouter()
 const projectStore = useProjectStore()
+
+const { proxy } = getCurrentInstance()
+const showToast = (msg) => {
+  if (proxy && proxy.$toast) {
+    proxy.$toast(msg)
+  }
+}
 
 const loading = ref(false)
 const showStartDatePicker = ref(false)
@@ -150,27 +157,27 @@ const onEndDateConfirm = () => {
 
 const onSubmit = async () => {
   if (!form.title) {
-    Toast.fail('请输入项目标题')
+    showToast('请输入项目标题')
     return
   }
   
   if (!form.start_date) {
-    Toast.fail('请选择开始日期')
+    showToast('请选择开始日期')
     return
   }
   
   if (!form.end_date) {
-    Toast.fail('请选择结束日期')
+    showToast('请选择结束日期')
     return
   }
   
   if (!form.budget) {
-    Toast.fail('请输入预算金额')
+    showToast('请输入预算金额')
     return
   }
   
   if (form.end_date < form.start_date) {
-    Toast.fail('结束日期不能早于开始日期')
+    showToast('结束日期不能早于开始日期')
     return
   }
   
@@ -186,13 +193,13 @@ const onSubmit = async () => {
       description: form.description || null
     })
     
-    Toast.success('创建成功')
+    showToast('创建成功')
     setTimeout(() => {
       router.push('/projects')
     }, 1000)
   } catch (error) {
     console.error('创建项目错误:', error)
-    Toast.fail(error?.data?.detail || error?.message || '创建失败')
+    showToast(error?.data?.detail || error?.message || '创建失败')
   } finally {
     loading.value = false
   }
