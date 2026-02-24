@@ -221,7 +221,7 @@ const confirmDelete = async () => {
   loading.value = true
   
   try {
-    await projectApi.delete(project.value.id)
+    await projectStore.delete(project.value.id)
     Toast.success('删除成功')
     showDeleteDialog.value = false
     
