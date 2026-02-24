@@ -221,20 +221,23 @@ const confirmDelete = async () => {
   loading.value = true
   
   try {
-    await projectStore.delete(project.value.id)
-    Toast.success('删除成功')
-    showDeleteDialog.value = false
-    
-    // 延迟跳转，让 Toast 显示完
-    setTimeout(() => {
-      router.push('/projects')
-    }, 500)
+    const result = await projectStore.delete(project.value.id)
+    if (result && result.success) {
+      Toast.success('删除成功')
+      showDeleteDialog.value = false
+      setTimeout(() => {
+        router.push('/projects')
+      }, 500)
+    } else {
+      Toast.fail(result?.message || '删除失败')
+      showDeleteDialog.value = false
+    }
   } catch (error) {
     console.error('删除项目错误:', error)
-    Toast.fail(error?.data?.detail || error?.message || '删除失败')
-    loading.value = false
+    Toast.fail(String(error?.message || error?.data?.detail || '删除失败'))
     showDeleteDialog.value = false
   }
+  loading.value = false
 }
 
 // 初始化
